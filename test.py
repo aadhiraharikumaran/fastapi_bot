@@ -128,7 +128,7 @@ def serialize_datetime_recursive(obj):
         return obj.isoformat()
     return obj
 
-# Simplified Gemini classification (replace with your actual logic)
+# Gemini classification (customize with your FEW_SHOT_EXAMPLES)
 async def classify_message_with_gemini(message: str, is_image: bool = False) -> Dict[str, Any]:
     try:
         if not gemini_client:
@@ -141,9 +141,23 @@ async def classify_message_with_gemini(message: str, is_image: bool = False) -> 
                 "Question_Script": "Latin"
             }
         
-        prompt = f"Classify this message: {message}"
+        # Replace with your actual FEW_SHOT_EXAMPLES and classification logic
+        prompt = f"""
+        Classify the following message into one of these categories:
+        - Donation Related Enquiries (Announce Related, Receipts Related, Amount Confirmation, Donation Payment Information, etc.)
+        - General (Greeting, Follow-up, Emoji, Thanks, etc.)
+        - General Information Enquiries (About Sansthan, Katha Related, etc.)
+        - Medical / Treatment Enquiries
+        - Community Outreach Enquiries
+        - Fundraising Campaign Enquiries
+        - Beneficiary Support Enquiries
+        - Ticket Related Enquiry
+        - SPAM
+
+        Message: {message}
+        """
         response = gemini_client.generate_content(prompt)
-        # Mock response (replace with your actual parsing)
+        # Mock response (replace with actual parsing)
         return {
             "classification": "General|Greeting" if "jai" in message.lower() else "Donation Related Enquiries|Donation Payment Information",
             "confidence": "HIGH",
@@ -308,47 +322,31 @@ if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=port)
 ```
 
-### Steps to Deploy and Test
+#### Step 3: Deploy the Updated Code
+1. **Save the File**:
+   - Save the code above as `test.py` in your project repository.
+   - Ensure no stray characters (e.g., `curl` commands or JSON snippets) are included in the file.
 
-1. **Update Supabase Schema** (if not already done):
-   - Run this in Supabase SQL Editor to ensure the `message_logs` table supports all fields:
-     ```sql
-     ALTER TABLE message_logs 
-     ADD COLUMN IF NOT EXISTS wa_msg_text TEXT,
-     ADD COLUMN IF NOT EXISTS ai_response TEXT,
-     ADD COLUMN IF NOT EXISTS ai_reason TEXT,
-     ADD COLUMN IF NOT EXISTS classification TEXT,
-     ADD COLUMN IF NOT EXISTS confidence TEXT,
-     ADD COLUMN IF NOT EXISTS reasoning TEXT,
-     ADD COLUMN IF NOT EXISTS interested_to_donate TEXT,
-     ADD COLUMN IF NOT EXISTS question_language TEXT,
-     ADD COLUMN IF NOT EXISTS question_script TEXT,
-     ADD COLUMN IF NOT EXISTS donor_name TEXT,
-     ADD COLUMN IF NOT EXISTS mobile_no TEXT,
-     ADD COLUMN IF NOT EXISTS wa_msg_type TEXT,
-     ADD COLUMN IF NOT EXISTS image_transcription TEXT,
-     ADD COLUMN IF NOT EXISTS donation_analysis JSONB,
-     ADD COLUMN IF NOT EXISTS processing_end_time TIMESTAMP WITH TIME ZONE,
-     ADD COLUMN IF NOT EXISTS processing_duration_ms INTEGER,
-     ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-     ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
-     
-     ALTER TABLE message_logs ENABLE ROW LEVEL SECURITY;
-     CREATE POLICY "Allow service key inserts" ON message_logs FOR ALL USING (true);
-     ```
+2. **Commit and Push**:
+   ```bash
+   git add test.py
+   git commit -m "Fix SyntaxError and ensure proper Supabase logging"
+   git push origin main
+   ```
 
-2. **Save and Deploy the Code**:
-   - Save the updated code as `main.py` in your project repository.
-   - Commit and push:
-     ```bash
-     git add main.py
-     git commit -m "Fix classification_result error and enhance Supabase logging"
-     git push origin main
-     ```
-   - Redeploy on Render via the dashboard or automatic webhook.
+3. **Redeploy on Render**:
+   - Go to Render’s dashboard > Your service > Trigger a redeploy (e.g., via **Manual Deploy** or automatic webhook).
+   - Monitor the deployment logs for success or errors.
 
-3. **Test with Postman**:
-   - Use this corrected curl command (fixing `WA_Msg_Type` to `"text"`):
+4. **Verify Deployment**:
+   - Check Render logs for:
+     - `"Starting FastAPI app on port 10000"`
+     - `"Using Supabase service key (bypasses RLS)"`
+     - No `SyntaxError` or import errors.
+
+#### Step 4: Test with Postman
+1. **Send the Corrected Request**:
+   - Use the `curl` command you provided, but fix `WA_Msg_Type`:
      ```bash
      curl -X 'POST' \
        'https://fastapi-bot-rosu.onrender.com/message' \
@@ -372,7 +370,7 @@ if __name__ == "__main__":
          "Donor_Name": "Aadhira"
        }'
      ```
-   - **Postman Setup**:
+   - **Postman Equivalent**:
      - Method: POST
      - URL: `https://fastapi-bot-rosu.onrender.com/message`
      - Headers: `Content-Type: application/json`, `accept: application/json`
@@ -396,18 +394,19 @@ if __name__ == "__main__":
          "Donor_Name": "Aadhira"
        }
        ```
-   - Expected response:
-     ```json
-     {
-       "phone_number": "9388012299",
-       "ai_response": "🙏 Jai Shree Narayan Aadhira! Thank you for your interest in donating. Please share your preferred donation method (e.g., UPI, bank transfer) or visit https://x.ai/donate for details.",
-       "ai_reason": "Message contains donation intent",
-       "WA_Auto_Id": 0,
-       "WA_Message_Id": "msg_123456"
-     }
-     ```
 
-4. **Check Supabase Logs**:
+2. **Expected Response**:
+   ```json
+   {
+     "phone_number": "9388012299",
+     "ai_response": "🙏 Jai Shree Narayan Aadhira! Thank you for your interest in donating. Please share your preferred donation method (e.g., UPI, bank transfer) or visit https://x.ai/donate for details.",
+     "ai_reason": "Message contains donation intent",
+     "WA_Auto_Id": 0,
+     "WA_Message_Id": "msg_123456"
+   }
+   ```
+
+3. **Check Supabase Logs**:
    - Go to Supabase > Table Editor > `message_logs`.
    - Query recent entries:
      ```sql
@@ -426,27 +425,67 @@ if __name__ == "__main__":
      - `mobile_no`: `"9388012299"`
      - `donor_name`: `"Aadhira"`
 
-5. **Monitor Render Logs**:
-   - Check Render’s dashboard > Logs for:
+4. **Monitor Render Logs**:
+   - Check for:
      - `"Successfully inserted Supabase log entry"`
      - `"Successfully updated Supabase log entry"`
-     - Any `"Supabase log failed"` errors
+     - Any `"Supabase log failed"` errors.
 
-### Troubleshooting
-1. **Supabase Schema**:
-   - If logs don’t appear with new columns, verify the schema update was applied correctly. Re-run the SQL if needed.
-2. **Supabase Errors**:
-   - Check for `"Supabase log failed"` in Render logs. Ensure `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are correct in Render’s Environment settings.
-3. **FAQ Database**:
-   - The code still references `extracted_data.db`. If missing, FAQ responses will default. Create and upload the SQLite file if needed.
-4. **Gemini Classification**:
-   - The `classify_message_with_gemini` function is simplified. If you have a more complex implementation (e.g., with `FEW_SHOT_EXAMPLES`), share it, and I can integrate it.
-5. **Render Cold Start**:
-   - If the request times out, retry after a few seconds (Render free tiers may have delays).
+#### Step 5: Update Supabase Schema (if Needed)
+If you haven’t applied the schema update yet, run this in Supabase’s SQL Editor:
+```sql
+ALTER TABLE message_logs 
+ADD COLUMN IF NOT EXISTS wa_msg_text TEXT,
+ADD COLUMN IF NOT EXISTS ai_response TEXT,
+ADD COLUMN IF NOT EXISTS ai_reason TEXT,
+ADD COLUMN IF NOT EXISTS classification TEXT,
+ADD COLUMN IF NOT EXISTS confidence TEXT,
+ADD COLUMN IF NOT EXISTS reasoning TEXT,
+ADD COLUMN IF NOT EXISTS interested_to_donate TEXT,
+ADD COLUMN IF NOT EXISTS question_language TEXT,
+ADD COLUMN IF NOT EXISTS question_script TEXT,
+ADD COLUMN IF NOT EXISTS donor_name TEXT,
+ADD COLUMN IF NOT EXISTS mobile_no TEXT,
+ADD COLUMN IF NOT EXISTS wa_msg_type TEXT,
+ADD COLUMN IF NOT EXISTS image_transcription TEXT,
+ADD COLUMN IF NOT EXISTS donation_analysis JSONB,
+ADD COLUMN IF NOT EXISTS processing_end_time TIMESTAMP WITH TIME ZONE,
+ADD COLUMN IF NOT EXISTS processing_duration_ms INTEGER,
+ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW();
 
-### Additional Notes
-- The `WA_Msg_Type: "string"` in your curl caused the issue because it didn’t match `"text"` or `"image"`. Always use `"text"` for text messages or `"image"` for image messages with a valid `WA_Url`.
-- If you need the actual Gemini classification logic (e.g., with `FEW_SHOT_EXAMPLES` from your original code), please share it, and I’ll update the function.
-- The Supabase logging now captures both initial (`status: "processing"`) and final (`status: "success"`) states, so you’ll see two updates per request in the `message_logs` table.
+ALTER TABLE message_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow service key inserts" ON message_logs FOR ALL USING (true);
+```
 
-If you encounter further errors (e.g., new HTTP 500 errors, missing logs in Supabase), share the error message, Postman response, or Render logs, and I’ll help debug. Once deployed, test with the corrected payload, and you should see proper responses and Supabase logs!
+#### Step 6: Handle FAQ Database (Optional)
+The logs previously indicated `extracted_data.db` is missing, which affects FAQ responses. To fix:
+1. Create a local SQLite database:
+   ```sql
+   CREATE TABLE extracted_data (
+       keywords TEXT,
+       content TEXT
+   );
+   INSERT INTO extracted_data (keywords, content) VALUES
+   ('donation purpose', 'Your donation supports our programs for the specially-abled.'),
+   ('amavasya campaign', 'The Amavasya campaign provides food to the needy.');
+   ```
+2. Save as `extracted_data.db` and upload to your Render project’s root directory.
+3. Redeploy to include the file.
+
+#### Troubleshooting
+1. **SyntaxError Persists**:
+   - If the error remains, share the contents of `test.py` around line 357 (e.g., lines 350–360) or the full file if possible.
+   - Check for unclosed quotes, stray JSON, or incorrect indentation.
+
+2. **Supabase Logging Issues**:
+   - If logs don’t appear, verify `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` in Render’s Environment settings.
+   - Check Render logs for `"Supabase log failed"`.
+
+3. **Gemini Classification**:
+   - The `classify_message_with_gemini` function is a placeholder. If you have the original `FEW_SHOT_EXAMPLES` or classification logic, share it to integrate properly.
+
+4. **Render Cold Start**:
+   - If requests time out, retry after a few seconds (Render free tiers may have delays).
+
+If the deployment fails again or you get new errors, share the Render logs or Postman response, and I’ll help pinpoint the issue. Once deployed, the application should handle your `curl` request correctly and log to Supabase with all fields!
