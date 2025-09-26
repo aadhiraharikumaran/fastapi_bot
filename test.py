@@ -722,4 +722,4 @@ async def log_to_local_file(log_data: dict, request_id: str):
 
 
 async def log_to_supabase(log_data: dict, request_id, table: str = "message_logs"):
-    """Enhanced Supabase logging with proper error handling
+    """Enhanced Supabase logging with proper
