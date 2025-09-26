@@ -746,4 +746,4 @@ async def forward_message_to_replica(payload: dict, request_id):
     replica_url = "https://nss-code-replica.onrender.com/message"
     try:
         safe_payload = serialize_datetime_recursive(payload)
-        async with httpx.AsyncClient(timeout=10
+        async with httpx.AsyncClient(timeout=10) as
