@@ -253,7 +253,7 @@ async def analyze_image_with_gemini(image_url: str, gemini_model, request_id) ->
         return {"transcription": transcription, "status": "success", "error": None}
 
     except Exception as e:
-        logger.error(f"{request_id}:- Image analysis error: {e},{image_url},{repr(e)}", exc_info=True)
+        logger.error(f"{request_id}:- Image analysis error: {e}")
         return {"transcription": "", "status": "error", "error": str(e)}
 
 
@@ -373,8 +373,7 @@ RESPOND IN THIS EXACT JSON FORMAT:
         if result.get("is_donation_screenshot") and 'detected_language' not in extraction_details:
             extraction_details['detected_language'] = 'hindi'
 
-        logger.info(
-            f"{request_id}:-Unified donation analysis result: {result.get('is_donation_screenshot')}, Details: {extraction_details}")
+        logger.info(f"{request_id}:-Unified donation analysis result: {result.get('is_donation_screenshot')}, Details: {extraction_details}")
 
         return {
             "is_donation_screenshot": result.get("is_donation_screenshot", False),
@@ -383,8 +382,7 @@ RESPOND IN THIS EXACT JSON FORMAT:
         }
 
     except json.JSONDecodeError as e:
-        logger.error(f"{request_id}:-JSON parsing error in unified donation processing: {e},{repr(e)}", exc_info=True)
-        logger.error(f"{request_id}:-Raw LLM response: {result_text}")
+        logger.error(f"{request_id}:-JSON parsing error in unified donation processing: {e}")
         return {
             "is_donation_screenshot": False,
             "extraction_details": {},
@@ -392,7 +390,7 @@ RESPOND IN THIS EXACT JSON FORMAT:
         }
 
     except Exception as e:
-        logger.error(f"{request_id}:-Error in unified donation processing: {e},{repr(e)}", exc_info=True)
+        logger.error(f"{request_id}:-Error in unified donation processing: {e}")
         return {
             "is_donation_screenshot": False,
             "extraction_details": {},
@@ -465,7 +463,7 @@ def classify_message_with_gemini(message: str, gemini_model, request_id) -> dict
         return result
         
     except json.JSONDecodeError as e:
-        logger.error(f"{request_id}:-JSON parsing error in classification: {str(e)}, Raw response: {result_text}")
+        logger.error(f"{request_id}:-JSON parsing error in classification: {str(e)}")
         return {"classification": "General|No_Module", "confidence": "LOW",
                 "reasoning": f"JSON parsing error: {str(e)}", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
@@ -563,7 +561,7 @@ async def LLM_reply_greeting(
             return dynamic_response
 
     except Exception as e:
-        logger.error(f"{request_id}:-Dynamic greeting generation failed: {e},{repr(e)}", exc_info=True)
+        logger.error(f"{request_id}:-Dynamic greeting generation failed: {e}")
         return f"🙏 Jai Shree Narayan {user_name}! Narayan Seva Sansthan se sampark karne ke liye dhanyawad, mai apki kaise sahayta kar sakti hu?"
 
 
@@ -615,7 +613,7 @@ async def LLM_reply_follow_up(
         return dynamic_response
 
     except Exception as e:
-        logger.error(f"{request_id}:-Dynamic follow_up generation failed: {e},{repr(e)}", exc_info=True)
+        logger.error(f"{request_id}:-Dynamic follow_up generation failed: {e}")
         return f"Jai Shree Narayan {user_name}!, hum aapki baat samajh rahe hain, aapki maang jald puri karne ki koshish karenge 🙏\nAdhik jankari ke liye iss number par sampark kijiye: +91-294 66 22 222\ndhanyawad🙏"
 
 
@@ -666,7 +664,7 @@ async def LLM_reply_ok(
         return dynamic_response
 
     except Exception as e:
-        logger.error(f"{request_id}:-Dynamic ok generation failed: {e},{repr(e)}", exc_info=True)
+        logger.error(f"{request_id}:-Dynamic ok generation failed: {e}")
         return f"Thik hai {user_name} ji, Narayan Seva Sansthan aapke sahayta ke liye hamesha hai, dhanyawad 🙏"
 
 
@@ -721,4 +719,31 @@ async def log_to_supabase(log_data: dict, request_id, table: str = "message_logs
         return True
         
     except Exception as e:
-        logger.error(f"{request_id}:-Supabase log failed:
+        logger.error(f"{request_id}:-Supabase log failed: {str(e)}")
+        logger.error(f"{request_id}:-Error type: {type(e).__name__}")
+        # Fallback to local logging
+        await log_to_local_file(log_data, request_id)
+        return False
+
+
+# ----------------------------
+# Helper functions
+# ----------------------------
+def serialize_datetime_recursive(obj: Any) -> Any:
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    elif isinstance(obj, dict):
+        return {k: serialize_datetime_recursive(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [serialize_datetime_recursive(item) for item in obj]
+    return obj
+
+
+# ----------------------------
+# Forward to replica system
+# ----------------------------
+async def forward_message_to_replica(payload: dict, request_id):
+    replica_url = "https://nss-code-replica.onrender.com/message"
+    try:
+        safe_payload = serialize_datetime_recursive(payload)
+        async with httpx.AsyncClient(timeout=10
