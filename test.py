@@ -163,35 +163,53 @@ Do not provide any explanation, just the number.
         return 1
 
 def generate_faq_response(content, question, gemini_model, request_id):
-    """Generate final FAQ answer using selected content"""
+    """Generate final FAQ answer using selected content with formal structure"""
     logger.info("🤖 Generating FAQ response")
 
     if not gemini_model:
-        return "Sorry, our FAQ service is temporarily unavailable."
+        return "Respected Sir/Madam,\n\nJai Narayan!\n\nThank you for contacting Narayan Seva Sansthan. Our service is temporarily unavailable. Please try again shortly.\n\nWith regards,\nNarayan Seva Sansthan"
 
     try:
         prompt = f"""
-You are a humble Sevak (volunteer) of Narayan Seva Sansthan.
-Answer the following question kindly and devotionally, using this content:
+You are a representative of Narayan Seva Sansthan. Generate a formal, structured response using the provided content.
 
-Content:
+CONTENT TO USE:
 {content}
 
-Question:
-{question}
+USER QUESTION:
+"{question}"
 
-Provide a short, sweet, and crisp answer in plain text (max 3-4 sentences). 
-Do not add extra commentary. 
+RESPONSE REQUIREMENTS:
+1. Start with "Respected Sir/Madam" or use appropriate salutation
+2. Include "Jai Narayan!" greeting
+3. Provide clear, helpful information from the content
+4. Maintain formal and respectful tone throughout
+5. Structure the response with proper paragraphs
+6. End with appropriate closing like "With regards," or "Thank you,"
+7. Sign off with "Narayan Seva Sansthan"
+8. Keep response concise but complete (4-6 sentences maximum)
+9. Do not use markdown formatting
+10. Ensure the response directly addresses the user's question
+
+Generate the response:
 """
 
         response = gemini_model.generate_content(prompt)
         faq_answer = response.text.strip()
-        logger.success(f"{request_id}:-✅ Final response generated ({len(faq_answer)} chars)")
+        
+        # Ensure proper formatting
+        if not faq_answer.startswith("Respected"):
+            faq_answer = f"Respected Sir/Madam,\n\nJai Narayan!\n\n{faq_answer}"
+        
+        if "Narayan Seva Sansthan" not in faq_answer:
+            faq_answer += "\n\nWith regards,\nNarayan Seva Sansthan"
+            
+        logger.success(f"{request_id}:-✅ Formal response generated ({len(faq_answer)} chars)")
         return faq_answer
 
     except Exception as e:
         logger.error(f"{request_id}:-💥 FAQ response generation error: {str(e)}")
-        return f"Sorry, could not generate an answer at the moment: {str(e)}"
+        return "Respected Sir/Madam,\n\nJai Narayan!\n\nThank you for your query. We are experiencing technical difficulties. Please contact us directly for assistance.\n\nWith regards,\nNarayan Seva Sansthan"
 
 # ----------------------------
 # Image Analysis Function
@@ -367,6 +385,48 @@ RESPOND IN THIS EXACT JSON FORMAT:
             "generated_response": None
         }
 
+# ----------------------------
+# Updated Donation response with formal structure  
+# ----------------------------
+async def generate_donation_response(user_name, gemini_model, request_id):
+    """Generate formal donation information response"""
+    if not gemini_model:
+        return "Respected Sir/Madam,\n\nJai Narayan!\n\nWe are delighted to know that you wish to support our service.\n\nYou can make a donation online through our website, transfer directly to our bank account, or send a cheque/money order. You may also have our volunteers visit your home, or contribute in person at our programs or branches.\n\nEvery contribution of yours is truly a blessing from Narayan.\n\nWith regards,\nNarayan Seva Sansthan"
+
+    try:
+        prompt = f'''
+Create a formal donation information response for Narayan Seva Sansthan.
+
+RESPONSE REQUIREMENTS:
+1. Start with "Respected Sir/Madam" 
+2. Include "Jai Narayan!" greeting
+3. Express delight about their donation interest
+4. List donation options clearly:
+   - Online through website
+   - Direct bank transfer  
+   - Cheque/money order
+   - Volunteer home visits
+   - In-person at programs/branches
+5. Include that every contribution is a blessing
+6. Maintain formal and grateful tone
+7. Structure with proper paragraphs
+8. End with appropriate closing
+
+Generate the formal donation response:
+'''
+
+        response = gemini_model.generate_content(prompt)
+        donation_response = response.text.strip()
+        
+        if not donation_response:
+            raise Exception("Empty response")
+            
+        return donation_response
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Donation response generation failed: {e}")
+        return "Respected Sir/Madam,\n\nJai Narayan!\n\nWe are delighted to know that you wish to support our service.\n\nYou can make a donation online through our website, transfer directly to our bank account, or send a cheque/money order. You may also have our volunteers visit your home, or contribute in person at our programs or branches.\n\nEvery contribution of yours is truly a blessing from Narayan.\n\nWith regards,\nNarayan Seva Sansthan"
+
 # Some few shot examples
 FEW_SHOT_EXAMPLES = """
 Classification:- Donation Related Enquiries, Sub_Classification:- Announce Related
@@ -399,11 +459,11 @@ Classification:- Donation Related Enquiries, Sub_Classification:- Receipts Relat
 -"Pls. Send receipt  of deposit amount
 -रसीद की हार्ड कॉपी जरूर भेजना।
 -Subject: Request for Acknowledgement Receipts – July & August 2025
-Dear Sir/Ma’am,
+Dear Sir/Ma'am,
 I have not yet received the acknowledgement receipts for the months of July 2025 and August 2025. May I kindly request you to share the same at the earliest.
 Your support in this matter will be highly appreciated.
 Thanks & regards,
-Nilesh Bhagat 🙏🏻"
+Nilesh Bhagat 🙏"
 -Receipt plz ??
 -Rasid. Sanjeev Kumar
 -"PLEASE SEND ME RECEIPT ON WHATSAPP
@@ -640,7 +700,7 @@ Classification:- General Information Enquiries, Sub_Classification:- Program Imp
 -How many divyang couples were supported this year?
 
 Classification:- General Information Enquiries, Sub_Classification:- Annual Report Request
--Can I see last year’s annual report?
+-Can I see last year's annual report?
 -Please share the financial report for 2024.
 -Is the annual report available online?
 -Send me the transparency report for donations.
@@ -667,7 +727,7 @@ Classification:- General Information Enquiries, Sub_Classification:- Woh Related
 
 Classification:- General Information Enquiries, Sub_Classification:- Event Related
 -Any events planned for next month?
--What’s the schedule for the annual function?
+-What's the schedule for the annual function?
 -Please share details of upcoming programs.
 
 Classification:- General Information Enquiries, Sub_Classification:- Naturopathy Related
@@ -760,8 +820,8 @@ Classification:- Fundraising Campaign Enquiries, Sub_Classification:- Sponsorshi
 
 Classification:- Beneficiary Support Enquiries, Sub_Classification:- Aid Application
 -How do I apply for financial help?
--Can I get assistance for my child’s education?
--What’s the process for applying for aid?
+-Can I get assistance for my child's education?
+-What's the process for applying for aid?
 -How to register as a beneficiary?
 -Need help applying for medical support.
 
@@ -855,7 +915,7 @@ def classify_message_with_gemini(message: str, gemini_model, request_id) -> dict
         Donation Related Enquiries, Receipts Related, Sending receipt details to donors after donation.
         Donation Related Enquiries, Send Sadhak Related, When a donor wants to send donation via a sadhak, including address details.
         Donation Related Enquiries, Property Donation, When a donor wants to donate property to the organization.
-        Donation Related Enquiries, FD & Will Related, When a donor wants to donate FD or Will in the organization’s name.
+        Donation Related Enquiries, FD & Will Related, When a donor wants to donate FD or Will in the organization's name.
         Donation Related Enquiries, CSR Donation Interest, When a company or donor wants to make a CSR donation.
         Donation Related Enquiries, In-Kind Donation, When a donor wants to donate materials instead of money.
         Donation Related Enquiries, Recurring Donation, Setting up recurring or monthly donations.
@@ -900,7 +960,7 @@ def classify_message_with_gemini(message: str, gemini_model, request_id) -> dict
         Ticket Related Enquiry, Master Update, Updating donor profile like address, name, number, email, etc.
         Ticket Related Enquiry, Receipts Related, When a donor receipt is created but donor has not received a hard copy.
         Ticket Related Enquiry, Complaint Related, Donor or patient complaints regarding services or donations.
-        Ticket Related Enquiry, Beneficiaries Detail Required, When patient list is required after a donor’s contribution.
+        Ticket Related Enquiry, Beneficiaries Detail Required, When patient list is required after a donor's contribution.
         Ticket Related Enquiry, Physiotherapy Center Open, When a donor inquires about opening a physiotherapy center.
         Ticket Related Enquiry, Receipt Book Related, When a branch member requests receipt book details.
         Ticket Related Enquiry, Vocational Course Related, When a student requests information on vocational courses.
@@ -963,13 +1023,8 @@ def classify_message_with_gemini(message: str, gemini_model, request_id) -> dict
                 "reasoning": f"API error: {str(e)}", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
 
-supabase: Client = None
-gemini_model = None
-numbered_content = {}
-keywords_summary = {}
-
 # ----------------------------
-# Greeting response LLM Function
+# Updated Greeting response with formal structure
 # ----------------------------
 async def LLM_reply_greeting(
         Question_Script,
@@ -981,85 +1036,47 @@ async def LLM_reply_greeting(
         request_id
 ) -> str:
     if not gemini_model:
-        return f"🙏 Jai Shree Narayan {user_name}! Narayan Seva Sansthan se sampark karne ke liye dhanyawad, mai apki kaise sahayta kar sakti hu?"
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for contacting Narayan Seva Sansthan. We are happy to assist you. How may we help you today?\n\nWith regards,\nNarayan Seva Sansthan"
 
     try:
-        if WA_Msg_Type and WA_Msg_Type.lower() == "image":
-            prompt = '''
-            You are Priya, a helpful and friendly assistant for Narayan Seva Sansthan. Your sole purpose is to generate a warm, welcoming greeting reply based on the provided user information and the content of an image transcription.
+        prompt = f'''
+You are a representative of Narayan Seva Sansthan. Create a formal greeting response.
 
-            ### Rules and Guidelines:
-            IMPORTANT:- below You will get the transcription of an image, generate a reply to it like someone has sent you that message in the same language with same script
+USER INFORMATION:
+- Name: {user_name if user_name and user_name != 'Sevak' else 'Sir/Madam'}
+- Original Message: {original_message}
+- Language: {Question_Language}
+- Script: {Question_Script}
 
-            1. Identify the primary greeting: Read the "Text" section of the image transcription to identify the greeting. If multiple greetings are present (e.g., "jai hanuman jai shree ram jai shree krishna"), select **only one** to use in your reply. Prioritize the most prominent greeting from the transcription.
-            2. Personalize the greeting:
-                - If a `user_name` is provided, include it naturally in the greeting. For example, "Hello [Name] ji!" or "नमस्ते [Name] जी!".
-                - If no `user_name` is available, use a generic greeting.
-            3. Craft a natural response:
-                - The greeting you generate should be in the same language and script as detected from the transcription (e.g., "Suprabhat" is Hindi in Latin script, "सुप्रभात" is Hindi in Devanagari script).
-                - Use a conversational and friendly tone. Don't simply repeat the exact greeting word-for-word if it sounds unnatural. For instance, if the image has "Jai Shri Ram Jai Shree Krishna Jai ram," a good response would be "Jai Shri Krishna! How can I assist you today?" Just pick any one out of it and maintain the question language and script
-            4. Add a helpful message: After the initial greeting, add a friendly and helpful message. This could be a question like "How can I assist you today?" or a simple statement of welcome.
-            5. Avoid extra information: Do not include any explanations, tags, or formatting in your final response. Only provide the greeting message.
-            6. Understand the previous chat history, use if required otherwise stick to your task for being a Greetings bot
-            7. Use Emojis whenever necessary
-            8. Reply with a nicely formatted message, which should look like it is sent by a human
-            9. Do not generate a response greater than 300 characters
-            '''
-            prompt += f'''
-            \nName:- {user_name}
-            \nQuestion's Language:- {Question_Language}
-            \nQuestion's Script:- {Question_Script}
-            \n User's Question {original_message}
-            '''
+RESPONSE REQUIREMENTS:
+1. Start with appropriate salutation (use name if available)
+2. Include "Jai Narayan!" greeting
+3. Acknowledge their message warmly
+4. Offer assistance in a formal manner
+5. Maintain respectful and professional tone
+6. Structure with proper paragraphs
+7. End with appropriate closing
+8. Keep response concise (3-4 sentences)
 
-            response = gemini_model.generate_content(prompt)
-            dynamic_response = response.text.strip()
-            if len(dynamic_response) > 300 or not dynamic_response:
-                raise Exception("Response too long or empty")
-            return dynamic_response
-        else:
-            prompt = '''
-            \nYou are Narayan Seva Sansthan's Assistant.\n
-            \nYour name is Priya, introduce yourself along with the greeting.\n
-            \nYour role in this step is ONLY to generate a greeting reply.\n
-            \nYou can be a bit creative, show that you are very happy to receive message from them, don't literally say it
-            \nAsk how can I help you
+IMPORTANT: Respond in the same language and script as the user's message.
 
-            \nRules:\n
-            \n1. Understand the previous chat history, use if required otherwise stick to your task for being a Greetings bot
-            \n3. If the user_name is recognized (old user) and their name is provided, always include their name naturally in the greeting.\n
-            \n- Example: "Hello Ramesh ji! How are you today?"\n
-            \n- Example: "नमस्ते सीमा जी! आप कैसी हैं?"\n
-            \n4. Always respond in the same combination of "Question's_language" and "Questions_script" as detected.\n
-            \n- If language = "hi" and script = "Latin" → Hindi in Latin script.\n
-            \n- If language = "hi" and script = "Devanagari" → Hindi in Devanagari script.\n
-            \n- If language = "en" and script = "Latin" → English in Latin script.\n
-            \n5. Do not translate into any other language or script. Always mirror the detected language + script.\n
-            \n6. Do not add any explanations, tags, or formatting. Only output the greeting message.\n
-            eg if the user says "Radhe radhe" you too should reply with " Radhe Radhe Rahul ji, ..... ?"
-            eg if the user says "Hello" you should reply with "Hi Rahul ji,...."
-            eg if the user says "जय श्री कृष्णा" you should reply "जय श्री कृष्णा साहिल जी,.....
-            \n7. Use Emojis whenever necessary
-            '''
-            prompt += f'''
-            \nName:- {user_name}
-            \nQuestion's Language:- {Question_Language}
-            \nQuestion's Script:- {Question_Script}
-            \n User's Question {original_message}
-            '''
+Generate the formal greeting response:
+'''
 
-            response = gemini_model.generate_content(prompt)
-            dynamic_response = response.text.strip()
-            if len(dynamic_response) > 300 or not dynamic_response:
-                raise Exception("Response too long or empty")
-            return dynamic_response
+        response = gemini_model.generate_content(prompt)
+        dynamic_response = response.text.strip()
+        
+        if len(dynamic_response) > 400 or not dynamic_response:
+            raise Exception("Response too long or empty")
+            
+        return dynamic_response
 
     except Exception as e:
-        logger.error(f"{request_id}:-Dynamic greeting generation failed: {e},{repr(e)}", exc_info=True)
-        return f"🙏 Jai Shree Narayan {user_name}! Narayan Seva Sansthan se sampark karne ke liye dhanyawad, mai apki kaise sahayta kar sakti hu?"
+        logger.error(f"{request_id}:-Dynamic greeting generation failed: {e}")
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for contacting Narayan Seva Sansthan. We are happy to assist you. How may we help you today?\n\nWith regards,\nNarayan Seva Sansthan"
 
 # ----------------------------
-# Follow-Up response LLM Function
+# Updated Follow-Up response with formal structure
 # ----------------------------
 async def LLM_reply_follow_up(
         Question_Script,
@@ -1069,48 +1086,45 @@ async def LLM_reply_follow_up(
         gemini_model,
         request_id):
     if not gemini_model:
-        return f"Jai Shree Narayan {user_name}!, hum aapki baat samajh rahe hain, aapki maang jald puri karne ki koshish karenge 🙏\nAdhik jankari ke liye iss number par sampark kijiye: +91-294 66 22 222\ndhanyawad🙏"
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for your follow-up. We appreciate your patience and will address your query shortly.\n\nWith regards,\nNarayan Seva Sansthan"
+
     try:
         prompt = f'''
-        You are Priya, Narayan Seva Sansthan's friendly assistant.
-        Your only role here is to generate a reply to FOLLOW UP related MESSAGE.
-        Be natural, positive, and show happiness in receiving the message.
+You are a representative of Narayan Seva Sansthan. Create a formal follow-up response.
 
-        Rules:-
-        1. Firstly read the chat History and try to identify with what respect is the user asking follow-up about and then based on that design the reply to follow-up message.
-        2. The language should be compassionate and avoid being overly formal or robotic
-        3. If user_name is provided, always include it naturally with "ji".
-        4. Mirror the detected Question's Language and Script exactly.
-        \n. Always respond in the same combination of "Question's_language" and "Questions_script" as detected.\n
-        \n- If language = "hi" and script = "Latin" → Hindi in Latin script.\n
-        \n- If language = "hi" and script = "Devanagari" → Hindi in Devanagari script.\n
-        \n- If language = "en" and script = "Latin" → English in Latin script.\n
-        eg. "if user says "jawab do please" and earlier he asked about the donation receipt, firstly since the question language is hindi and script is english "Ji Sahil Ji, so your reply should somewhat be like(whatever the username is), shama chahta hu, apki donation receipt ko hum jald sei jald aap tak pohochane ki koshish krenge.\nDeri ke liye maafi chahte hai.🙏"
-        3. The message must reference the specific context of the last communication.
-        4. Provide assurance that their request will be completed as soon as possible.
-        5. Give them a positive reply
-        6. not to long not to short, sweet and simple
-        7. Be apologetic.
-        8. Do not generate a response greater than 300 characters
+USER INFORMATION:
+- Name: {user_name if user_name and user_name != 'Sevak' else 'Sir/Madam'}
+- Follow-up Message: {original_message}
+- Language: {Question_Language}
+- Script: {Question_Script}
 
-        I have provided the elements needed for analysis and reply creation below
-        \nName:- {user_name}
-        \nQuestion's Language:- {Question_Language}
-        \nQuestion's Script:- {Question_Script}
-        \nUser's Input:- {original_message}
-        '''
-        response = gemini_model.generate_content(contents=prompt)
+RESPONSE REQUIREMENTS:
+1. Start with appropriate salutation
+2. Include "Jai Narayan!" greeting  
+3. Acknowledge their follow-up politely
+4. Provide reassurance about their query
+5. Offer specific assistance or timeline if possible
+6. Maintain professional and caring tone
+7. Structure with proper paragraphs
+8. Keep response concise but helpful
+
+Generate the formal follow-up response:
+'''
+
+        response = gemini_model.generate_content(prompt)
         dynamic_response = response.text.strip()
-        if len(dynamic_response) > 300 or not dynamic_response:
+        
+        if len(dynamic_response) > 400 or not dynamic_response:
             raise Exception("Response too long or empty")
+            
         return dynamic_response
 
     except Exception as e:
-        logger.error(f"{request_id}:-Dynamic follow_up generation failed: {e},{repr(e)}", exc_info=True)
-        return f"Jai Shree Narayan {user_name}!, hum aapki baat samajh rahe hain, aapki maang jald puri karne ki koshish karenge 🙏\nAdhik jankari ke liye iss number par sampark kijiye: +91-294 66 22 222\ndhanyawad🙏"
+        logger.error(f"{request_id}:-Dynamic follow_up generation failed: {e}")
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for your follow-up. We appreciate your patience and will address your query shortly.\n\nWith regards,\nNarayan Seva Sansthan"
 
 # ----------------------------
-# Ok response LLM Function
+# Updated Ok response with formal structure
 # ----------------------------
 async def LLM_reply_ok(
         Question_Script,
@@ -1120,44 +1134,46 @@ async def LLM_reply_ok(
         gemini_model,
         request_id):
     if not gemini_model:
-        return f"Thik hai {user_name} ji, Narayan Seva Sansthan aapke sahayta ke liye hamesha hai, dhanyawad 🙏"
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for your confirmation. We are here to assist you further if needed.\n\nWith regards,\nNarayan Seva Sansthan"
 
     try:
         prompt = f'''
-        You are Priya, Narayan Seva Sansthan's friendly assistant.
-        Your only role here is to generate a reply to Ok related MESSAGE.
-        Be natural, positive, and show happiness in receiving the message.
+You are a representative of Narayan Seva Sansthan. Create a formal response to an "Ok" or confirmation message.
 
-        Rules:-
-        1. Firstly read the chat History and try to identify with what respect is the user is saying Ok about and then based on that design the reply to Ok related message.
-        2. The language should be compassionate and avoid being overly formal or robotic
-        3. Mirror the detected Question's Language and Script exactly.
-        4. If user asked a question you replied to it and then if the user replied with ok, then first reply reply to his okay and then ask a follow up question if necessary.
-        5. If he asked anything about donation and then we gave him the information, reply to that okay and then try to persuade him about the donation.
-        6. Be Natural while replying to ok. if you feel there's nothing to add up end the conversation with lets say "happy to help" or something like that.
-        \n. Always respond in the same combination of "Question's_language" and "Questions_script" as detected.\n
-        \n- If language = "hi" and script = "Latin" → Hindi in Latin script.\n
-        \n- If language = "hi" and script = "Devanagari" → Hindi in Devanagari script.\n
-        \n- If language = "en" and script = "Latin" → English in Latin script.\n
-        eg If the user says "Ji" which is kind of ok/yes in hindi then read the earlier context, check to what he has said ok, and reply accordingly. lets say we asked him is he willing to donate to 2 tricycle which costs 7000, and for that he said "Ji" my reply could be like "Thikey, Sahil Ji! Jab aap aage ki donation process complete kar lein, toh please humein batayega. Ek aur cheez jo hum suggest karna chahenge: agar aap isi amount mein ₹2,000 aur add karein, toh aap ek nahin, do logon ki help kar payenge!\n Hum aapke sahayta ke liye tatpar hai".
-        7. Be natural and generate a reply which suits the conversation.
-        8. Do not generate a response greater than 300 characters
+USER INFORMATION:
+- Name: {user_name if user_name and user_name != 'Sevak' else 'Sir/Madam'}
+- Message: {original_message}
+- Language: {Question_Language}
+- Script: {Question_Script}
 
-        I have provided the elements needed for analysis and reply creation below
-        \nName:- {user_name}
-        \nQuestion's Language:- {Question_Language}
-        \nQuestion's Script:- {Question_Script}
-        \nUser's Input:- {original_message}
-        '''
-        response = gemini_model.generate_content(contents=prompt)
+RESPONSE REQUIREMENTS:
+1. Start with appropriate salutation
+2. Include "Jai Narayan!" greeting
+3. Acknowledge their confirmation
+4. Offer further assistance if needed
+5. Maintain professional and polite tone
+6. Structure with proper paragraphs
+7. Keep response concise (2-3 sentences)
+
+Generate the formal response:
+'''
+
+        response = gemini_model.generate_content(prompt)
         dynamic_response = response.text.strip()
+        
         if len(dynamic_response) > 300 or not dynamic_response:
             raise Exception("Response too long or empty")
+            
         return dynamic_response
 
     except Exception as e:
-        logger.error(f"{request_id}:-Dynamic ok generation failed: {e},{repr(e)}", exc_info=True)
-        return f"Thik hai {user_name} ji, Narayan Seva Sansthan aapke sahayta ke liye hamesha hai, dhanyawad 🙏"
+        logger.error(f"{request_id}:-Dynamic ok generation failed: {e}")
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for your confirmation. We are here to assist you further if needed.\n\nWith regards,\nNarayan Seva Sansthan"
+
+supabase: Client = None
+gemini_model = None
+numbered_content = {}
+keywords_summary = {}
 
 # ----------------------------
 # Lifespan handler
@@ -1353,7 +1369,7 @@ async def handle_message(request: MessageRequest):
 
             if donation_result.get("is_donation_screenshot"):
                 ai_response = donation_result.get("generated_response",
-                                                  "Thank you for your donation! We'll process it soon.")
+                                                  "Respected Sir/Madam,\n\nJai Narayan!\n\nThank you for your donation! We will process it shortly and send you the receipt.\n\nWith regards,\nNarayan Seva Sansthan")
                 log_data["ai_response"] = ai_response
                 log_data["status"] = "success"
                 await log_to_supabase(log_data, request_id)
@@ -1367,8 +1383,7 @@ async def handle_message(request: MessageRequest):
                 )
 
     # Handle specific classifications
-    main_classification, sub_classification = classification.split("|") if "|" in classification else (
-    classification, "No_Module")
+    main_classification, sub_classification = classification.split("|") if "|" in classification else (classification, "No_Module")
 
     if main_classification == "General":
         if sub_classification == "Greeting":
@@ -1384,10 +1399,10 @@ async def handle_message(request: MessageRequest):
                 question_script, question_language, message_text, user_name, gemini_model, request_id
             )
         else:
-            ai_response = f"🙏 Jai Shree Narayan {user_name}! Thank you for contacting Narayan Seva Sansthan. How can I assist you today?"
+            ai_response = f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for contacting Narayan Seva Sansthan. How may we assist you today?\n\nWith regards,\nNarayan Seva Sansthan"
     elif main_classification in ["Donation Related Enquiries", "Ticket Related Enquiry"]:
-        if interested_to_donate == "yes":
-            ai_response = f"🙏 Jai Shree Narayan {user_name}! Thank you for your interest in donating. Please share your preferred donation method (e.g., UPI, bank transfer) or visit https://x.ai/donate for details."
+        if interested_to_donate == "yes" or "donation" in message_text.lower():
+            ai_response = await generate_donation_response(user_name, gemini_model, request_id)
         else:
             selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
             selected_content = numbered_content.get(selected_content_num, "No relevant content found.")
