@@ -97,7 +97,7 @@ def fetch_numbered_data():
         logger.error(f"FAQ Database file not found at '{db_path}'. FAQ functionality will be disabled.")
         return {}, {}
 
-    logger.info(f"🗄️ Fetching numbered content from FAQ database ({db_path})")
+    logger.info(f"Fetching numbered content from FAQ database ({db_path})")
 
     try:
         conn = sqlite3.connect(db_path)
@@ -113,16 +113,16 @@ def fetch_numbered_data():
             numbered_content[i] = record[1]  # Full content
             keywords_summary[i] = record[0]  # Keywords for selection
 
-        logger.success(f"✅ Loaded {len(numbered_content)} numbered FAQ content sections")
+        logger.success(f"Loaded {len(numbered_content)} numbered FAQ content sections")
         return numbered_content, keywords_summary
 
     except Exception as e:
-        logger.error(f"💥 FAQ Database error: {str(e)}")
+        logger.error(f"FAQ Database error: {str(e)}")
         return {}, {}
 
 def llm_select_best_content(query, keywords_summary, gemini_model, request_id):
     """Let LLM select the best content number using Gemini"""
-    logger.info(f"{request_id}:-🧠 LLM analyzing query for FAQ: '{query[:50]}...'")
+    logger.info(f"{request_id}:-LLM analyzing query for FAQ: '{query[:50]}...'")
 
     if not gemini_model:
         logger.warning("Gemini client not available for FAQ selection")
@@ -149,22 +149,22 @@ Do not provide any explanation, just the number.
         try:
             selected_num = int(selected_number)
             if 1 <= selected_num <= len(keywords_summary):
-                logger.success(f"{request_id}:-✅ LLM selected content section #{selected_num}")
+                logger.success(f"{request_id}:-LLM selected content section #{selected_num}")
                 return selected_num
             else:
-                logger.warning(f"{request_id}:-⚠️ LLM returned invalid number: {selected_number}")
+                logger.warning(f"{request_id}:-LLM returned invalid number: {selected_number}")
                 return 1
         except ValueError:
-            logger.warning(f"{request_id}:-⚠️ LLM returned non-numeric response: {selected_number}")
+            logger.warning(f"{request_id}:-LLM returned non-numeric response: {selected_number}")
             return 1
 
     except Exception as e:
-        logger.error(f"{request_id}:-💥 LLM FAQ selection error: {str(e)}")
+        logger.error(f"{request_id}:-LLM FAQ selection error: {str(e)}")
         return 1
 
 def generate_faq_response(content, question, gemini_model, request_id):
     """Generate final FAQ answer using selected content with formal structure"""
-    logger.info("🤖 Generating FAQ response")
+    logger.info("Generating FAQ response")
 
     if not gemini_model:
         return "Respected Sir/Madam,\n\nJai Narayan!\n\nThank you for contacting Narayan Seva Sansthan. Our service is temporarily unavailable. Please try again shortly.\n\nWith regards,\nNarayan Seva Sansthan"
@@ -204,11 +204,11 @@ Generate the response:
         if "Narayan Seva Sansthan" not in faq_answer:
             faq_answer += "\n\nWith regards,\nNarayan Seva Sansthan"
             
-        logger.success(f"{request_id}:-✅ Formal response generated ({len(faq_answer)} chars)")
+        logger.success(f"{request_id}:-Formal response generated ({len(faq_answer)} chars)")
         return faq_answer
 
     except Exception as e:
-        logger.error(f"{request_id}:-💥 FAQ response generation error: {str(e)}")
+        logger.error(f"{request_id}:-FAQ response generation error: {str(e)}")
         return "Respected Sir/Madam,\n\nJai Narayan!\n\nThank you for your query. We are experiencing technical difficulties. Please contact us directly for assistance.\n\nWith regards,\nNarayan Seva Sansthan"
 
 # ----------------------------
@@ -441,12 +441,12 @@ M sansthan ka Sahyog karna chahta hu
 
 Classification:- Donation Related Enquiries, Sub_Classification:- Receipts Related
 -I didn’t get receipt for 4500
--No need to send receipt pls 🙏🏻
+-No need to send receipt pls 
 -Yes  only send me the donation receipt for ten thousand also send hard copy by post
 -Rasid Sohan Ram Prajapat ke Name se Mil jayega kya
 -Recipt भेज दो na sir ji
 -Please send receipt
--Sorry, actually I need the receipts for July 24 & August 24..Kindly do the needful 🙏🏻🙏🏻
+-Sorry, actually I need the receipts for July 24 & August 24..Kindly do the needful 
 -Is there any Receipt ??
 -Please send receipt
 -कृपया सितंबर 2024 में दी गई डोनेशन राशि रुपए 10000 की रसीद एवं इनकम टैक्स सर्टिफिकेट प्रदान करने की कृपा करें
@@ -463,14 +463,14 @@ Dear Sir/Ma'am,
 I have not yet received the acknowledgement receipts for the months of July 2025 and August 2025. May I kindly request you to share the same at the earliest.
 Your support in this matter will be highly appreciated.
 Thanks & regards,
-Nilesh Bhagat 🙏"
+Nilesh Bhagat "
 -Receipt plz ??
 -Rasid. Sanjeev Kumar
 -"PLEASE SEND ME RECEIPT ON WHATSAPP
 -NO NEED TO SEND BY POST"
 
 Classification:- Donation Related Enquiries, Sub_Classification:- Amount Confirmation
--Hospital के लिए 100000की सेवा सहयोग भी भेजा था 🙏
+-Hospital के लिए 100000की सेवा सहयोग भी भेजा था 
 -Rs.5100 transferred from A/c ...0501 to:IMPS/P2A/5237164. Total Bal:Rs.43530.21CR. Avlbl Amt:Rs.288530.21, FFD Bal Rs.245000(25-08-2025 16:50:23) - Bank of Baroda
 -Donar id 2254151
 -Firstly i transferred  Rs. 501  yesterday but not debited my ac & thereafter I transfer rs.1  for checking , both the amounts  of Rs 501 & 1 to your HDFC  ac No. 500-000-759-75997 but the message comes as *there is a customer memo present on the credit amount* Screen shot of Rs. 1 is attached above. Pl  check & show this screen shot to your hdfc bank  as to why the amount is not being credited.  My bank account is with HDFC ac , Bhera enclave, Paschim vihar, N Delhi-110087  - Donor id  396872 saroj malhotra delhi cell no. 9810326214.
@@ -486,7 +486,7 @@ Kindly acknowledge the amount I hv donated to your sanstha
 -Jo Screen Shot Send kiye hai Maine
 -Hi, you have sent Rs.5,500.00 from 9352351847@idfcfirst to paytmqr2810050501010uwohbemahg0@paytm using your IDFC FIRST Bank UPI.Txn ID-523676286360.
 -We sent the amount for Haldi and Mehndi for two couples.
--Finally I succeeded today in transferring ₹2000/- to the sanstha a/c for feeding children on amavasya.🙏
+-Finally I succeeded today in transferring ₹2000/- to the sanstha a/c for feeding children on amavasya.
 
 Classification:- Donation Related Enquiries, Sub_Classification:- Donation Payment Information
 -Can we send contribution in the above account?
@@ -508,7 +508,7 @@ Classification:- Donation Related Enquiries, Sub_Classification:- KYC Update
 -"उपरोक्त Donation मेरे द्वारा मेरे नाम Rajendra Kumar Sharma से किया गया था 
 -मेरा ही Pan नम्बर दिया गया था 
 -कृपया गलती सुधारने की कोशिश कीजिए 
--अन्यथा Pan नम्बर बदलने का कष्ट करें 
+-अन्यथा Pan नंबर बदलने का कष्ट करें 
 -This is my PAN"
 -Adhar & pan
 -My PAN NO is ACIPR 0141F
@@ -568,32 +568,32 @@ Classification:- Donation Related Enquiries, Sub_Classification:- CSR Donation I
 -Can we discuss CSR funding for your programs?
 
 Classification:- General, Sub_Classification:- Greeting
--Om Gajananaya namah. Om Mitraye namah. Radhe Radhe. Jai Sada Shiv. Jai Sarvamangala Mata. Jai Ragya Mata. Jai Bhadrakaali Mata. Jai Sharada Mata. Jai Annapurna Mata. Jai Sheetla Mata. Jai Bhoomi Mata. Jai Mangalmurti Hanuman. Om Swami Nathishoraye namah. Guru kripa. Mangalamay Mangalvaar. Orzu🙏🙏🙏
-"🙏🌼🌼 *जय श्री राधाकृष्ण*🌼🌼🙏
-  🙏🌺🌺 *श्रीकृष्णावतार*🌺🌺🙏
+-Om Gajananaya namah. Om Mitraye namah. Radhe Radhe. Jai Sada Shiv. Jai Sarvamangala Mata. Jai Ragya Mata. Jai Bhadrakaali Mata. Jai Sharada Mata. Jai Annapurna Mata. Jai Sheetla Mata. Jai Bhoomi Mata. Jai Mangalmurti Hanuman. Om Swami Nathishoraye namah. Guru kripa. Mangalamay Mangalvaar. Orzu
+" *जय श्री राधाकृष्ण*
+  *श्रीकृष्णावतार*
 -*फिर भगवान् से मांगने की बजाये निकटता बनाओ तो सब कुछ अपने आप मिलना शुरू हो जायेगा ।*
--*🌷 जय श्री गणेश जी जय श्री कृष्ण 🌷*शुभ रात्रि  जय सियाराम"
+-* जय श्री गणेश जी जय श्री कृष्ण *शुभ रात्रि  जय सियाराम"
 -Jay Shri Ram
 -Ram ram ji
--राधे राधे 🏵️🙏
+-राधे राधे 
 -Gud Nyt Yu Nd Yr Family Members
 -Jai naryana
--जय श्री श्याम जी 🙏
+-जय श्री श्याम जी 
 -Hi
--🙏 OK   Jay shree Radhey Krishna
--"-🙏🌹🥭🪔🥥🕉️🇮🇳🙇‍♂️
+- OK   Jay shree Radhey Krishna
+-"- 
 -Namah vishnu in service of needy"
--Jai Narayan 👏
--जय नारायण 🙏🙏
--🙏🙏🙏 राधे राधे जय श्री कृष्ण
--हम आपके संस्थान से 2010से जुड़े हैं 🙏
+-Jai Narayan 
+-जय नारायण 
+- राधे राधे जय श्री कृष्ण
+-हम आपके संस्थान से 2010से जुड़े हैं 
 -Ram ramji
 -"जय नारायण 
--Jay shree Krishna 🙏
--Jai jai shree shyam 🙏🌹🙌
+-Jay shree Krishna 
+-Jai jai shree shyam 
 -Jai Shree Shyam
 -Jai Shree Bala ji
-Good morning sir, ji 🙏🌹
+Good morning sir, ji 
 -राम राम जी  जय श्री कृष्णा जय नारायणन  हरि विष्णु जी  ।गुरूजी को चरणस्पर्श पणाम स्वीकार हो  ।
 
 Classification:- General, Sub_Classification:- Follow-up
@@ -611,23 +611,23 @@ Classification:- General, Sub_Classification:- Follow-up
 -Pls talk to me my phone is silent i am on line
 
 Classification:- General, Sub_Classification:- Emoji
--🙏🏻
--🌹🙏🌹
--👏👏👏
--👍👍
--❤️❤️
--👏
+-
+-
+-
+-
+-
+-
 
 Classification:- General, Sub_Classification:- Interested
 -I'm interested
 
 Classification:- General, Sub_Classification:- Thanks
 -Thanks Sir
--आप का बहुत धन्यवाद सेवाओं की जानकारी देने के लिए 🙏
--जी 💐 धन्यवाद 👏🏻
+-आप का बहुत धन्यवाद सेवाओं की जानकारी देने के लिए 
+-जी  धन्यवाद 
 -Thanks
 -"Apka bahut bahut dhanyavad
--🙏🙏🙏"
+-"
 -Thankyou
 -धन्यवाद जी जय नारायण
 -धन्यवाद महोदय
@@ -773,14 +773,14 @@ Classification:- Medical / Treatment Enquiries, Sub_Classification:- Artificial 
 -Sir mujhe one leg m polio h mujhe thik karana hai
 -A person name Raja has lost his left arm in an accident  how he can get a artificial arm...
 -Ujjain se चिमनगंज थाने के आगे वाली झुग्गी झोपड़ी मे रहते हैं और ये मेरा लड़का है जिसका पैर कट गया था एक्सीडेंट में और मे ठेला लगाती हूं फ्रूट का छोटा सा
-"🌈🎺🎊🥁जय श्री महाँकाल
-*त्रिलोकेशं नीलकण्ठं*
+" जय श्री महाँकाल
+*त्रिलोकेशं नील15कण्ठं*
            *गंगाधरं सदाशिवम् ।*
 *मृत्युञ्जयं महादेवं*
            *नमामि  तं  शंकरम् ।।*
-🌈भावार्थ: तीनों लोकों के स्वामी, नीलकण्ठ, गंगा को धारण करने वाले, हमेशा कल्याण करने वाले, मृत्यु पर विजय प्राप्त करने वाले, महादेव - शंकर जी की वंदना करता हूॅं।
+भावार्थ: तीनों लोकों के स्वामी, नीलकण्ठ, गंगा को धारण करने वाले, हमेशा कल्याण करने वाले, मृत्यु पर विजय प्राप्त करने वाले, महादेव - शंकर जी की वंदना करता हूॅं।
 
-🥁🎊🎺🌈द्वादश ज्योतिर्लिंग में तीसरे उज्जैन स्थित दक्षिणमुखी स्वयम्भू बाबा महाँकाल का आज प्रातः 4 बजे प्रारम्भ भस्म आरती श्रंगार दर्शन - 25 अगस्त 2025 शिव प्रिय सोमवार"
+ द्वादश ज्योतिर्लिंग में तीसरे उज्जैन स्थित दक्षिणमुखी स्वयम्भू बाबा महाँकाल का आज प्रातः 4 बजे प्रारम्भ भस्म आरती श्रंगार दर्शन - 25 अगस्त 2025 शिव प्रिय सोमवार"
 "पंडित श्री संतोष शास्त्री अनपूर्णा गऊ शाला शिव शक्ति खाटू श्याम बाबा परिवार नर्मदा तट मंडला वाले।
 -Mo. 9753020200,7999867569
 -Janm se hi biklang hai
@@ -1170,6 +1170,175 @@ Generate the formal response:
         logger.error(f"{request_id}:-Dynamic ok generation failed: {e}")
         return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for your confirmation. We are here to assist you further if needed.\n\nWith regards,\nNarayan Seva Sansthan"
 
+# ----------------------------
+# NEW: Receipt Response (Donation Related Enquiries|Receipts Related)
+# ----------------------------
+async def generate_receipt_response(
+        message_text: str,
+        user_name: str,
+        question_language: str,
+        question_script: str,
+        gemini_model,
+        request_id
+) -> str:
+    if not gemini_model:
+        return """Respected Sir/ Ma'am,
+
+Jai Narayan!
+
+Thank you for your generous donation to Narayan Seva Sansthan.
+Attaching herewith the receipt for your reference.
+
+Kindly let us know if you require a hard copy as well. 🙏,"""
+
+    try:
+        prompt = f'''
+You are a representative of Narayan Seva Sansthan. Generate a receipt acknowledgment.
+
+USER INFO:
+- Name: {user_name}
+- Message: {message_text}
+- Language/Script: {question_language}/{question_script}
+
+EXTRACT from message: amount (e.g., ₹5100), date (DD/MM/YYYY), donor_name (full name).
+
+RESPONSE RULES (Match user's language/script):
+- Generic: "Respected Sir/Ma'am, Jai Narayan! Thank you... Attaching receipt... Hard copy? 🙏"
+- Personalized: "Dear [FULL NAME], Thank you for ₹[AMOUNT].00. Date: [DATE]. Receipt soon... With gratitude, Narayan Seva Sansthan (Online Mode)"
+
+EXAMPLES:
+- "Today transferred Rs 5100" -> "Dear Luxmi Diwadi, Thank you for ₹5100.00. Date: 23/09/2025..."
+- "Send receipt" -> Generic
+- "Thank you... await receipt for Darshana Pandya" -> Generic (no amount/date)
+
+Generate exact response:
+'''
+        response = gemini_model.generate_content(prompt)
+        ai_response = response.text.strip()
+        if len(ai_response) > 500 or not ai_response:
+            raise Exception("Invalid response")
+        return ai_response
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Receipt response failed: {e}")
+        return """Respected Sir/ Ma'am,
+
+Jai Narayan!
+
+Thank you for your generous donation to Narayan Seva Sansthan.
+Attaching herewith the receipt for your reference.
+
+Kindly let us know if you require a hard copy as well. 🙏,"""
+
+# ----------------------------
+# NEW: Amount Confirmation Response (Donation Related Enquiries|Amount Confirmation)
+# ----------------------------
+async def generate_amount_confirmation_response(
+        message_text: str,
+        user_name: str,
+        question_language: str,
+        question_script: str,
+        gemini_model,
+        request_id
+) -> str:
+    if not gemini_model:
+        if question_language == "hi":
+            return """आदरणीय CP GUPTA JI,
+
+ जय नारायण !
+
+आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए।
+कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें।
+
+धन्यवाद।"""
+        return """Respected Umi Ji,
+Jai Narayan!
+
+Thank you very much for your generous contribution. It will be put to the best use to help those in need.
+We kindly request you to share the transaction/reference number for confirmation of the amount."""
+
+    try:
+        prompt = f'''
+Generate amount confirmation response.
+
+USER INFO: Name: {user_name}, Message: {message_text}, Lang/Script: {question_language}/{question_script}
+
+RULES: Match examples exactly. Hindi for Hindi queries.
+- "I have put money... Nat West" -> English request for txn ID
+- "Is name se paisa nhi jaha hai" -> Hindi name fix
+- "कन्या भोजन..." -> Hindi thanks for specific purpose
+
+Generate:
+'''
+        response = gemini_model.generate_content(prompt)
+        ai_response = response.text.strip()
+        return ai_response if ai_response else "Fallback generic"
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Amount confirmation failed: {e}")
+        # Fallback based on language
+        if question_language == "hi":
+            return """आदरणीय CP GUPTA JI,
+
+ जय नारायण !
+
+आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए।
+कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें।
+
+धन्यवाद।"""
+        return """Respected Umi Ji,
+Jai Narayan!
+
+Thank you very much for your generous contribution. It will be put to the best use to help those in need.
+We kindly request you to share the transaction/reference number for confirmation of the amount."""
+
+# ----------------------------
+# NEW: Post-Donation Response (Donation Related Enquiries|Post-Donation Related)
+# ----------------------------
+async def generate_post_donation_response(
+        message_text: str,
+        user_name: str,
+        question_language: str,
+        question_script: str,
+        gemini_model,
+        request_id
+) -> str:
+    if not gemini_model:
+        return """Respected  Latha ji
+
+Jai Narayan!
+
+We are deeply saddened to hear about the passing of your son.
+Our heartfelt condolences to you and your family in this difficult time.
+We truly appreciate your support even in such a moment of grief.
+Please be assured that we will carry out the necessary process as per your request.
+May God give you strength and peace."""
+
+    try:
+        prompt = f'''
+Generate condolence post-donation response.
+
+USER: {user_name}, Message: {message_text}, Lang: {question_language}
+
+Match example: "He is no more... depositing" -> Condolence + assurance.
+
+Generate:
+'''
+        response = gemini_model.generate_content(prompt)
+        return response.text.strip()
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Post-donation failed: {e}")
+        return """Respected Latha ji
+
+Jai Narayan!
+
+We are deeply saddened to hear about the passing of your son.
+Our heartfelt condolences to you and your family in this difficult time.
+We truly appreciate your support even in such a moment of grief.
+Please be assured that we will carry out the necessary process as per your request.
+May God give you strength and peace."""
+
 supabase: Client = None
 gemini_model = None
 numbered_content = {}
@@ -1385,7 +1554,11 @@ async def handle_message(request: MessageRequest):
     # Handle specific classifications
     main_classification, sub_classification = classification.split("|") if "|" in classification else (classification, "No_Module")
 
-    if main_classification == "General":
+    if main_classification == "Spam" and sub_classification == "Spammy Message":
+        ai_response = """Jai Narayan 
+Thank you for your warm wishes. Your blessings and support inspire us to continue serving differently-abled brothers and sisters with love and care  """
+
+    elif main_classification == "General":
         if sub_classification == "Greeting":
             ai_response = await LLM_reply_greeting(
                 question_script, question_language, message_text, user_name, gemini_model, wa_msg_type, request_id
@@ -1400,14 +1573,33 @@ async def handle_message(request: MessageRequest):
             )
         else:
             ai_response = f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name},\n\nJai Narayan!\n\nThank you for contacting Narayan Seva Sansthan. How may we assist you today?\n\nWith regards,\nNarayan Seva Sansthan"
-    elif main_classification in ["Donation Related Enquiries", "Ticket Related Enquiry"]:
-        if interested_to_donate == "yes" or "donation" in message_text.lower():
+
+    elif main_classification == "Donation Related Enquiries":
+        if sub_classification == "Receipts Related":
+            ai_response = await generate_receipt_response(
+                message_text, user_name, question_language, question_script, gemini_model, request_id
+            )
+        elif sub_classification == "Amount Confirmation":
+            ai_response = await generate_amount_confirmation_response(
+                message_text, user_name, question_language, question_script, gemini_model, request_id
+            )
+        elif sub_classification == "Announce Related":
             ai_response = await generate_donation_response(user_name, gemini_model, request_id)
+        elif sub_classification == "Post-Donation Related":
+            ai_response = await generate_post_donation_response(
+                message_text, user_name, question_language, question_script, gemini_model, request_id
+            )
         else:
-            selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
-            selected_content = numbered_content.get(selected_content_num, "No relevant content found.")
-            ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
+            # Existing: interested_to_donate check + FAQ
+            if interested_to_donate == "yes" or "donation" in message_text.lower():
+                ai_response = await generate_donation_response(user_name, gemini_model, request_id)
+            else:
+                selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
+                selected_content = numbered_content.get(selected_content_num, "No relevant content found.")
+                ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
+
     else:
+        # Existing FAQ for all other categories
         selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
         selected_content = numbered_content.get(selected_content_num, "No relevant content found.")
         ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
