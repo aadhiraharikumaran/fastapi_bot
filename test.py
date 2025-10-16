@@ -66,7 +66,7 @@ def get_supabase_client() -> Client:
     return client
 
 # ----------------------------
-# Gemini AI Client Setup
+# Gemini AI Client Setup - Fixed model name
 # ----------------------------
 def get_gemini_client():
     """Initialize Gemini client with API key from environment"""
@@ -388,14 +388,14 @@ RESPOND IN THIS EXACT JSON FORMAT:
 async def generate_donation_response(user_name, gemini_model, request_id):
     """Generate formal donation information response"""
     if not gemini_model:
-        return "Respected Sir/Madam, Jai Narayan! We are delighted to know that you wish to support our service. You can make a donation online through our website, transfer directly to our bank account, or send a cheque/money order. You may also have our volunteers visit your home, or contribute in person at our programs or branches. Every contribution of yours is truly a blessing from Narayan. With regards, Narayan Seva Sansthan"
+        return "Respected Sir\n\n Jai Narayan!\n\nWe are delighted to know that you wish to support our service.\nYou can make a donation online through our website, transfer directly to our bank account, or send a cheque/money order.\nYou may also have our volunteers visit your home, or contribute in person at our programs or branches.\nEvery contribution of yours is truly a blessing from Narayan.\n\nWith regards, Narayan Seva Sansthan"
 
     try:
         prompt = f'''
 Create a formal donation information response for Narayan Seva Sansthan. Keep it concise (100-150 words max), structured, and without excessive details.
 
 RESPONSE REQUIREMENTS:
-1. Start with "Respected Sir/Madam" 
+1. Start with "Respected Sir" 
 2. Include "Jai Narayan!" greeting
 3. Express delight about their donation interest
 4. List donation options briefly in a numbered list:
@@ -424,19 +424,36 @@ Generate the concise response:
 
     except Exception as e:
         logger.error(f"{request_id}:-Donation response generation failed: {e}")
-        return "Respected Sir/Madam, Jai Narayan! We are delighted to know that you wish to support our service. You can make a donation online through our website, transfer directly to our bank account, or send a cheque/money order. You may also have our volunteers visit your home, or contribute in person at our programs or branches. Every contribution of yours is truly a blessing from Narayan. With regards, Narayan Seva Sansthan"
+        return "Respected Sir\n\n Jai Narayan!\n\nWe are delighted to know that you wish to support our service.\nYou can make a donation online through our website, transfer directly to our bank account, or send a cheque/money order.\nYou may also have our volunteers visit your home, or contribute in person at our programs or branches.\nEvery contribution of yours is truly a blessing from Narayan.\n\nWith regards, Narayan Seva Sansthan"
 
-# Some few shot examples
+# Expanded FEW_SHOT_EXAMPLES with new examples
 FEW_SHOT_EXAMPLES = """
+Classification:- Donation Related Enquiries, Sub_Classification:- Receipts Related
+-Receipt still due. Please send.
+-Send receipt for the payment
+-Today transferred Rs 5100/- your Axis Bank Account towards operation. Kindly issue reciept and send Income tax certificate. Luxmi Diwadi, H.no.278 S/F Masjid Moth, South Ext.2,New Delhi 110049. Mob.8802282501.
+-I had send 2200rs with their donater name send those reciepts
+-Aapane received provide nahin kiya hai
+-Please provide 80G receipt for 10000 Rs transferred by me today. Richa Nag
+-Thank you for this. We also await receipt for Darshana Pandya? 🙏
+
+Classification:- Spam, Sub_Classification:- Spammy Message
+-*Replay Today*  *Subject: Goals: The Escalator to Success | 30-min Leadership Talk*   The Bhagavad Gita isn’t just philosophy — it’s a practical guide for clarity, focus, and leadership. Join us for a 30-min talk on:  Goals – The Escalator to Success 🗓 Today,  26th September | 🕛 9:00–9:45 PM IST   👉 Register here: https://vedantawisdom.in/goal-talk-2/  One idea from the Gita could change the way you lead — and live.  Warm regards,  Jayshree Makwana, Vedanta Wisdom Trust
+
+Classification:- Donation Related Enquiries, Sub_Classification:- Amount Confirmation
+-I have put money in your Nat West Bank London
+-Is name se paisa nhi jaha hai
+-कन्या भोजन के लिए अष्टमी पर
+
 Classification:- Donation Related Enquiries, Sub_Classification:- Announce Related
--दिव्यांग बच्चों के भोजन लिए सहयोग 3000 का
-5000/ का
-दिव्यांग कन्या विवाह  हेतु सादर समर्पित...धन्यवाद..
-में संस्थान से जुड़कर करना चाहता हु।
+-How to help
 -I will pay 4.5k
 -Ok I will pay
 What I can do what is the payment
 M sansthan ka Sahyog karna chahta hu
+
+Classification:- Donation Related Enquiries, Sub_Classification:- Post-Donation Related
+-He is no moreI am his mother who is  depositing pls do the faver.
 
 Classification:- Donation Related Enquiries, Sub_Classification:- Receipts Related
 -I didn’t get receipt for 4500
@@ -1176,132 +1193,6 @@ Generate:
         return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name}, Jai Narayan! Thank you for your confirmation. We are here to assist you further if needed. With regards, Narayan Seva Sansthan"
 
 # ----------------------------
-# NEW: Receipt Response (Donation Related Enquiries|Receipts Related)
-# ----------------------------
-async def generate_receipt_response(
-        message_text: str,
-        user_name: str,
-        question_language: str,
-        question_script: str,
-        gemini_model,
-        request_id
-) -> str:
-    if not gemini_model:
-        return "Respected Sir/ Ma'am, Jai Narayan! Thank you for your generous donation to Narayan Seva Sansthan. Attaching herewith the receipt for your reference. Kindly let us know if you require a hard copy as well. With regards, Narayan Seva Sansthan"
-
-    try:
-        prompt = f'''
-You are a representative of Narayan Seva Sansthan. Generate a receipt acknowledgment. Keep concise and plain text.
-
-USER INFO:
-- Name: {user_name}
-- Message: {message_text}
-- Language/Script: {question_language}/{question_script}
-
-EXTRACT: amount, date (DD/MM/YYYY), donor_name.
-
-RESPONSE RULES:
-- Generic: "Respected Sir/Ma'am, Jai Narayan! Thank you... Attaching receipt... Hard copy? With regards, Narayan Seva Sansthan"
-- Personalized: "Dear [FULL NAME], Thank you for ₹[AMOUNT].00. Date: [DATE]. Receipt soon... With regards, Narayan Seva Sansthan"
-- Use simple line breaks, no escaped newlines
-- Match language/script
-- Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
-
-Generate exact response:
-'''
-        response = gemini_model.generate_content(prompt)
-        ai_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
-        if len(ai_response) > 500 or not ai_response:
-            raise Exception("Invalid response")
-        return ai_response
-
-    except Exception as e:
-        logger.error(f"{request_id}:-Receipt response failed: {e}")
-        return "Respected Sir/ Ma'am, Jai Narayan! Thank you for your generous donation to Narayan Seva Sansthan. Attaching herewith the receipt for your reference. Kindly let us know if you require a hard copy as well. With regards, Narayan Seva Sansthan"
-
-# ----------------------------
-# Updated Amount Confirmation Response (Donation Related Enquiries|Amount Confirmation)
-# ----------------------------
-async def generate_amount_confirmation_response(
-        message_text: str,
-        user_name: str,
-        question_language: str,
-        question_script: str,
-        gemini_model,
-        request_id
-) -> str:
-    if not gemini_model:
-        if question_language == "hi":
-            return "आदरणीय CP GUPTA JI, जय नारायण ! आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए। कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें। धन्यवाद। With regards, Narayan Seva Sansthan"
-        return "Respected Umi Ji, Jai Narayan! Thank you very much for your generous contribution. It will be put to the best use to help those in need. We kindly request you to share the transaction/reference number for confirmation of the amount. With regards, Narayan Seva Sansthan"
-
-    try:
-        prompt = f'''
-You are a representative of Narayan Seva Sansthan handling amount confirmation queries. Generate a direct, concise response without referencing any FAQ or content limitations.
-
-USER INFO: Name: {user_name}, Message: "{message_text}", Lang: {question_language}, Script: {question_script}
-
-EXAMPLES TO MATCH EXACTLY:
-1. Message: "Is name se paisa nhi jaha hai" (Hindi, name mismatch) -> "आदरणीया {user_name} जी, जय नारायण! कृपया सही नाम 'Narayan Seva Sansthan' से ट्रांसफर करें। धन्यवाद। With regards, Narayan Seva Sansthan"
-2. Message: "I have put money in your Nat West Bank London" (English, bank transfer) -> "Respected {user_name}, Jai Narayan! Thank you for your contribution. Please share the transaction/reference number for confirmation. With regards, Narayan Seva Sansthan"
-3. Message: "कन्या भोजन के लिए अष्टमी पर" (Hindi, purpose announcement) -> "आदरणीय {user_name} जी, जय नारायण! अष्टमी पर कन्या भोजन के लिए आपका सहयोग हार्दिक धन्यवाद। यह नेक कार्य में बड़ी मदद करेगा। With regards, Narayan Seva Sansthan"
-4. Message: "Today transferred Rs 5100/- ..." (English/Hindi mix, details shared) -> Personalized thanks with amount if extractable.
-
-RULES:
-- NEVER mention "content does not contain", "unable to provide", or FAQ limitations.
-- Extract key details (amount, bank, purpose, name issue) from message and respond accordingly.
-- Match user's language/script exactly.
-- Keep under 100 words, use simple line breaks only (no \n escapes).
-- Always end with "With regards, Narayan Seva Sansthan" or Hindi equivalent.
-- If unclear, ask for clarification politely: "कृपया अधिक विवरण साझा करें।" or "Please provide more details."
-- Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
-
-Generate the exact response:
-'''
-        response = gemini_model.generate_content(prompt)
-        ai_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
-        return ai_response if ai_response else "Respected Sir/Madam, Jai Narayan! Please clarify your query for better assistance. With regards, Narayan Seva Sansthan"
-
-    except Exception as e:
-        logger.error(f"{request_id}:-Amount confirmation failed: {e}")
-        if question_language == "hi":
-            return "आदरणीय CP GUPTA JI, जय नारायण ! आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए। कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें। धन्यवाद। With regards, Narayan Seva Sansthan"
-        return "Respected Umi Ji, Jai Narayan! Thank you very much for your generous contribution. It will be put to the best use to help those in need. We kindly request you to share the transaction/reference number for confirmation of the amount. With regards, Narayan Seva Sansthan"
-
-# ----------------------------
-# NEW: Post-Donation Response (Donation Related Enquiries|Post-Donation Related)
-# ----------------------------
-async def generate_post_donation_response(
-        message_text: str,
-        user_name: str,
-        question_language: str,
-        question_script: str,
-        gemini_model,
-        request_id
-) -> str:
-    if not gemini_model:
-        return "Respected Latha ji, Jai Narayan! We are deeply saddened to hear about the passing of your son. Our heartfelt condolences to you and your family in this difficult time. We truly appreciate your support even in such a moment of grief. Please be assured that we will carry out the necessary process as per your request. May God give you strength and peace. With regards, Narayan Seva Sansthan"
-
-    try:
-        prompt = f'''
-Generate condolence post-donation response.
-
-USER: {user_name}, Message: {message_text}, Lang: {question_language}
-
-Match example: "He is no more... depositing" -> Condolence + assurance.
-Use simple line breaks, no escaped newlines
-Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
-
-Generate:
-'''
-        response = gemini_model.generate_content(prompt)
-        return response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
-
-    except Exception as e:
-        logger.error(f"{request_id}:-Post-donation failed: {e}")
-        return "Respected Latha ji, Jai Narayan! We are deeply saddened to hear about the passing of your son. Our heartfelt condolences to you and your family in this difficult time. We truly appreciate your support even in such a moment of grief. Please be assured that we will carry out the necessary process as per your request. May God give you strength and peace. With regards, Narayan Seva Sansthan"
-
-# ----------------------------
 # NEW: Thanks Response (General|Thanks)
 # ----------------------------
 async def LLM_reply_thanks(
@@ -1350,6 +1241,128 @@ Generate:
     except Exception as e:
         logger.error(f"{request_id}:-Dynamic thanks generation failed: {e}")
         return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name}, Jai Narayan! Thank you for your kind words. Your support means a lot to us. With regards, Narayan Seva Sansthan"
+
+# ----------------------------
+# Enhanced Receipt Response with examples
+# ----------------------------
+async def generate_receipt_response(
+        message_text: str,
+        user_name: str,
+        question_language: str,
+        question_script: str,
+        gemini_model,
+        request_id
+) -> str:
+    if not gemini_model:
+        return "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+
+    try:
+        prompt = f'''
+You are a representative of Narayan Seva Sansthan. Generate a receipt acknowledgment based on user message. Match language/script.
+
+USER INFO:
+- Name: {user_name}
+- Message: {message_text}
+- Language/Script: {question_language}/{question_script}
+
+EXAMPLES:
+1. "Receipt still due. Please send." -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+2. "Send receipt for the payment" -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+3. "Aapane received provide nahin kiya hai" -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+4. "Thank you for this. We also await receipt for Darshana Pandya?" -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+5. "Today transferred Rs 5100/- ... Luxmi Diwadi" -> "Dear Luxmi Diwadi , Thank you for your generous donation of ₹5100.00. Date: 23/09/2025 Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan (Online Mode)"
+6. "I had send 2200rs with their donater name send those reciepts" -> "Dear Nagendra Tiwari , Thank you for your generous donation of ₹1,500.00. Date: 26/09/2025 Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan (Online Mode)"
+7. "Please provide 80G receipt for 10000 Rs transferred by me today. Richa Nag" -> "Dear RICHA JI , Thank you for your generous donation of ₹10000.00. Date: 24/09/2025 Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan (Online Mode)"
+
+RULES:
+- Extract amount/name/date from message if present
+- If specific details, personalize; else generic attachment message
+- Use simple line breaks
+- Match user's language (translate if Hindi message)
+- End appropriately
+- Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
+
+Generate exact response:
+'''
+        response = gemini_model.generate_content(prompt)
+        ai_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
+        if len(ai_response) > 500 or not ai_response:
+            raise Exception("Invalid response")
+        return ai_response
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Receipt response failed: {e}")
+        return "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+
+# ----------------------------
+# Enhanced Amount Confirmation Response
+# ----------------------------
+async def generate_amount_confirmation_response(
+        message_text: str,
+        user_name: str,
+        question_language: str,
+        question_script: str,
+        gemini_model,
+        request_id
+) -> str:
+    if not gemini_model:
+        return "Respected Sir/Madam, Jai Narayan! Please share transaction details for confirmation. With regards, Narayan Seva Sansthan"
+
+    try:
+        prompt = f'''
+Generate amount confirmation response.
+
+EXAMPLES:
+1. "I have put money in your Nat West Bank London" -> "Respected Umi Ji,\nJai Narayan!\n\nThank you very much for your generous contribution. It will be put to the best use to help those in need.\nWe kindly request you to share the transaction/reference number for confirmation of the amount.\n\nWith regards, Narayan Seva Sansthan"
+2. "Is name se paisa nhi jaha hai" -> "आदरणीय CP GUPTA JI,\n\n🙏 जय नारायण !\n\nआपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए।\nकृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें।\n\nधन्यवाद।\n\nWith regards, Narayan Seva Sansthan"
+3. "कन्या भोजन के लिए अष्टमी पर" -> "आदरणीय डॉली अग्रवाल जी \n\nजय नारायण!\n\nअष्टमी पर कन्या भोजन हेतु आपके सहयोग के लिए बहुत बहुत  धन्यवाद।\nआपका यह पुण्य कार्य दिव्यांग एवं जरूरतमंदों के जीवन में नई मुस्कान लाएगा।\n\nWith regards, Narayan Seva Sansthan"
+
+Match message intent, extract details, respond in matching language/script.
+Under no circumstances mention data sources, content availability, or limitations.
+
+Generate:
+'''
+        response = gemini_model.generate_content(prompt)
+        return response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Amount confirmation failed: {e}")
+        return "Respected Sir/Madam, Jai Narayan! Please share more details. With regards, Narayan Seva Sansthan"
+
+# ----------------------------
+# NEW: Post-Donation Response (Donation Related Enquiries|Post-Donation Related)
+# ----------------------------
+async def generate_post_donation_response(
+        message_text: str,
+        user_name: str,
+        question_language: str,
+        question_script: str,
+        gemini_model,
+        request_id
+) -> str:
+    if not gemini_model:
+        return "Respected Latha ji\n\nJai Narayan!\n\nWe are deeply saddened to hear about the passing of your son.\nOur heartfelt condolences to you and your family in this difficult time.\nWe truly appreciate your support even in such a moment of grief.\nPlease be assured that we will carry out the necessary process as per your request.\nMay God give you strength and peace.\n\nWith regards, Narayan Seva Sansthan"
+
+    try:
+        prompt = f'''
+Generate condolence post-donation response.
+
+USER: {user_name}, Message: {message_text}, Lang: {question_language}
+
+EXAMPLES:
+"He is no moreI am his mother who is  depositing pls do the faver." -> "Respected  Latha ji\n\nJai Narayan!\n\nWe are deeply saddened to hear about the passing of your son.\nOur heartfelt condolences to you and your family in this difficult time.\nWe truly appreciate your support even in such a moment of grief.\nPlease be assured that we will carry out the necessary process as per your request.\nMay God give you strength and peace.\n\nWith regards, Narayan Seva Sansthan"
+
+Use simple line breaks, no escaped newlines
+Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
+
+Generate:
+'''
+        response = gemini_model.generate_content(prompt)
+        return response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Post-donation failed: {e}")
+        return "Respected Latha ji\n\nJai Narayan!\n\nWe are deeply saddened to hear about the passing of your son.\nOur heartfelt condolences to you and your family in this difficult time.\nWe truly appreciate your support even in such a moment of grief.\nPlease be assured that we will carry out the necessary process as per your request.\nMay God give you strength and peace.\n\nWith regards, Narayan Seva Sansthan"
 
 supabase: Client = None
 gemini_model = None
@@ -1569,7 +1582,7 @@ async def handle_message(request: MessageRequest):
 
     ai_response = ""
     if main_classification == "Spam" and sub_classification == "Spammy Message":
-        ai_response = "Jai Narayan! Thank you for your warm wishes. Your blessings and support inspire us to continue serving differently-abled brothers and sisters with love and care. With regards, Narayan Seva Sansthan"
+        ai_response = "Jai Narayan 🙏\nThank you for your warm wishes. Your blessings and support inspire us to continue serving differently-abled brothers and sisters with love and care 🙏 "
 
     elif main_classification == "General":
         if sub_classification == "Greeting":
@@ -1622,6 +1635,21 @@ async def handle_message(request: MessageRequest):
         selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
         selected_content = numbered_content.get(selected_content_num, "We appreciate your query. Our team will assist you shortly.")
         ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
+
+    # Global fallback if gemini fails in any generator
+    if "API error" in reasoning or not ai_response.strip():
+        if "Receipts Related" in classification:
+            ai_response = "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+        elif "Amount Confirmation" in classification:
+            ai_response = "Respected Sir/Madam, Jai Narayan! Please share transaction details for confirmation. With regards, Narayan Seva Sansthan"
+        elif "Announce Related" in classification:
+            ai_response = "Respected Sir\n\n Jai Narayan!\n\nWe are delighted to know that you wish to support our service.\nYou can make a donation online through our website, transfer directly to our bank account, or send a cheque/money order.\nYou may also have our volunteers visit your home, or contribute in person at our programs or branches.\nEvery contribution of yours is truly a blessing from Narayan.\n\nWith regards, Narayan Seva Sansthan"
+        elif "Post-Donation Related" in classification:
+            ai_response = "Respected Latha ji\n\nJai Narayan!\n\nWe are deeply saddened to hear about the passing of your son.\nOur heartfelt condolences to you and your family in this difficult time.\nWe truly appreciate your support even in such a moment of grief.\nPlease be assured that we will carry out the necessary process as per your request.\nMay God give you strength and peace.\n\nWith regards, Narayan Seva Sansthan"
+        elif "Spam" in classification:
+            ai_response = "Jai Narayan 🙏\nThank you for your warm wishes. Your blessings and support inspire us to continue serving differently-abled brothers and sisters with love and care 🙏 "
+        else:
+            ai_response = f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name}, Jai Narayan! Thank you for your message. How may we assist you? With regards, Narayan Seva Sansthan"
 
     # Ensure no empty response
     if not ai_response.strip():
