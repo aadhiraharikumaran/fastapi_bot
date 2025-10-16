@@ -76,7 +76,7 @@ def get_gemini_client():
         return None
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-2.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash")
         logger.info("Gemini client and model initialized successfully")
         return model
     except AttributeError as e:
@@ -171,37 +171,29 @@ def generate_faq_response(content, question, gemini_model, request_id):
 
     try:
         prompt = f"""
-You are a representative of Narayan Seva Sansthan. Generate a formal, structured response using the provided content. Keep concise.
+You are a representative of Narayan Seva Sansthan. Generate a helpful response even if content is limited.
 
-CONTENT TO USE:
-{content}
+CONTENT: {content}
+QUESTION: "{question}"
 
-USER QUESTION:
-"{question}"
+RULES:
+- If content does not match, politely say: "We don't have specific details on this, but our team can assist. Please contact helpline."
+- NEVER say "content does not contain" or "unable to provide".
+- Start with "Respected Sir/Madam, Jai Narayan!"
+- Use info from content if relevant, else give general guidance.
+- End with "With regards, Narayan Seva Sansthan"
+- Plain text, simple line breaks, concise.
+- Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
 
-RESPONSE REQUIREMENTS:
-1. Start with "Respected Sir/Madam" or use appropriate salutation
-2. Include "Jai Narayan!" greeting
-3. Provide clear, helpful information from the content
-4. Maintain formal and respectful tone throughout
-5. Structure the response with simple line breaks
-6. End with appropriate closing like "With regards," or "Thank you,"
-7. Sign off with "Narayan Seva Sansthan"
-8. Keep response concise but complete (4-6 sentences maximum)
-9. Plain text only, no markdown, no escaped newlines
-
-Generate the response:
+Generate:
 """
 
         response = gemini_model.generate_content(prompt)
-        faq_answer = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
+        faq_answer = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
         
-        # Ensure proper formatting
-        if not faq_answer.startswith("Respected"):
-            faq_answer = f"Respected Sir/Madam, Jai Narayan! {faq_answer}"
-        
-        if "Narayan Seva Sansthan" not in faq_answer:
-            faq_answer += " With regards, Narayan Seva Sansthan"
+        # Fallback enforcement
+        if "does not contain" in faq_answer.lower() or "unable" in faq_answer.lower():
+            faq_answer = f"Respected Sir/Madam, Jai Narayan! For your query on '{question[:30]}...', kindly contact our helpline for personalized assistance. With regards, Narayan Seva Sansthan"
             
         logger.success(f"{request_id}:-Formal response generated ({len(faq_answer)} chars)")
         return faq_answer
@@ -362,7 +354,7 @@ RESPOND IN THIS EXACT JSON FORMAT:
 
         generated_response = result.get("generated_response", None)
         if generated_response:
-            generated_response = generated_response.replace("\\n\\n", "\n").replace("\\n", "\n")
+            generated_response = generated_response.replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
 
         logger.info(
             f"{request_id}:-Unified donation analysis result: {result.get('is_donation_screenshot')}, Details: {extraction_details}")
@@ -417,12 +409,13 @@ RESPONSE REQUIREMENTS:
 7. Use simple line breaks (no escaped newlines)
 8. End with "With regards, Narayan Seva Sansthan"
 9. Output plain text only, no markdown or extra formatting
+10. Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
 
 Generate the concise response:
 '''
 
         response = gemini_model.generate_content(prompt)
-        donation_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
+        donation_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
         
         if not donation_response or len(donation_response) > 1000:
             raise Exception("Invalid response")
@@ -1064,6 +1057,7 @@ RESPONSE REQUIREMENTS:
 7. End with "With regards, Narayan Seva Sansthan"
 8. Keep response concise (3-4 sentences)
 9. Plain text only
+10. Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
 
 IMPORTANT: Respond in the same language and script as the user's message.
 
@@ -1071,7 +1065,7 @@ Generate:
 '''
 
         response = gemini_model.generate_content(prompt)
-        dynamic_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
+        dynamic_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
         
         if len(dynamic_response) > 400 or not dynamic_response:
             raise Exception("Response too long or empty")
@@ -1115,12 +1109,13 @@ RESPONSE REQUIREMENTS:
 7. Use simple line breaks
 8. End with "With regards, Narayan Seva Sansthan"
 9. Plain text only
+10. Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
 
 Generate:
 '''
 
         response = gemini_model.generate_content(prompt)
-        dynamic_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
+        dynamic_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
         
         if len(dynamic_response) > 400 or not dynamic_response:
             raise Exception("Response too long or empty")
@@ -1163,12 +1158,13 @@ RESPONSE REQUIREMENTS:
 6. Use simple line breaks
 7. End with "With regards, Narayan Seva Sansthan"
 8. Plain text only
+9. Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
 
 Generate:
 '''
 
         response = gemini_model.generate_content(prompt)
-        dynamic_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
+        dynamic_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
         
         if len(dynamic_response) > 300 or not dynamic_response:
             raise Exception("Response too long or empty")
@@ -1209,11 +1205,12 @@ RESPONSE RULES:
 - Personalized: "Dear [FULL NAME], Thank you for ₹[AMOUNT].00. Date: [DATE]. Receipt soon... Narayan Seva Sansthan"
 - Use simple line breaks, no escaped newlines
 - Match language/script
+- Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
 
 Generate exact response:
 '''
         response = gemini_model.generate_content(prompt)
-        ai_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
+        ai_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
         if len(ai_response) > 500 or not ai_response:
             raise Exception("Invalid response")
         return ai_response
@@ -1223,7 +1220,7 @@ Generate exact response:
         return "Respected Sir/ Ma'am, Jai Narayan! Thank you for your generous donation to Narayan Seva Sansthan. Attaching herewith the receipt for your reference. Kindly let us know if you require a hard copy as well. 🙏"
 
 # ----------------------------
-# NEW: Amount Confirmation Response (Donation Related Enquiries|Amount Confirmation)
+# Updated Amount Confirmation Response (Donation Related Enquiries|Amount Confirmation)
 # ----------------------------
 async def generate_amount_confirmation_response(
         message_text: str,
@@ -1240,21 +1237,30 @@ async def generate_amount_confirmation_response(
 
     try:
         prompt = f'''
-Generate amount confirmation response.
+You are a representative of Narayan Seva Sansthan handling amount confirmation queries. Generate a direct, concise response without referencing any FAQ or content limitations.
 
-USER INFO: Name: {user_name}, Message: {message_text}, Lang/Script: {question_language}/{question_script}
+USER INFO: Name: {user_name}, Message: "{message_text}", Lang: {question_language}, Script: {question_script}
 
-RULES: Match examples exactly. Hindi for Hindi queries.
-- "I have put money... Nat West" -> English request for txn ID
-- "Is name se paisa nhi jaha hai" -> Hindi name fix
-- "कन्या भोजन..." -> Hindi thanks for specific purpose
-- Use simple line breaks, no escaped newlines
+EXAMPLES TO MATCH EXACTLY:
+1. Message: "Is name se paisa nhi jaha hai" (Hindi, name mismatch) -> "आदरणीया {user_name} जी, जय नारायण! कृपया सही नाम 'Narayan Seva Sansthan' से ट्रांसफर करें। धन्यवाद। With regards, Narayan Seva Sansthan"
+2. Message: "I have put money in your Nat West Bank London" (English, bank transfer) -> "Respected {user_name}, Jai Narayan! Thank you for your contribution. Please share the transaction/reference number for confirmation. With regards, Narayan Seva Sansthan"
+3. Message: "कन्या भोजन के लिए अष्टमी पर" (Hindi, purpose announcement) -> "आदरणीय {user_name} जी, जय नारायण! अष्टमी पर कन्या भोजन के लिए आपका सहयोग हार्दिक धन्यवाद। यह नेक कार्य में बड़ी मदद करेगा। With regards, Narayan Seva Sansthan"
+4. Message: "Today transferred Rs 5100/- ..." (English/Hindi mix, details shared) -> Personalized thanks with amount if extractable.
 
-Generate:
+RULES:
+- NEVER mention "content does not contain", "unable to provide", or FAQ limitations.
+- Extract key details (amount, bank, purpose, name issue) from message and respond accordingly.
+- Match user's language/script exactly.
+- Keep under 100 words, use simple line breaks only (no \n escapes).
+- Always end with "With regards, Narayan Seva Sansthan" or Hindi equivalent.
+- If unclear, ask for clarification politely: "कृपया अधिक विवरण साझा करें।" or "Please provide more details."
+- Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
+
+Generate the exact response:
 '''
         response = gemini_model.generate_content(prompt)
-        ai_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
-        return ai_response if ai_response else "Fallback generic"
+        ai_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
+        return ai_response if ai_response else "Respected Sir/Madam, Jai Narayan! Please clarify your query for better assistance. With regards, Narayan Seva Sansthan"
 
     except Exception as e:
         logger.error(f"{request_id}:-Amount confirmation failed: {e}")
@@ -1284,11 +1290,12 @@ USER: {user_name}, Message: {message_text}, Lang: {question_language}
 
 Match example: "He is no more... depositing" -> Condolence + assurance.
 Use simple line breaks, no escaped newlines
+Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
 
 Generate:
 '''
         response = gemini_model.generate_content(prompt)
-        return response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n")
+        return response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
 
     except Exception as e:
         logger.error(f"{request_id}:-Post-donation failed: {e}")
@@ -1494,7 +1501,7 @@ async def handle_message(request: MessageRequest):
             if donation_result.get("is_donation_screenshot"):
                 ai_response = donation_result.get("generated_response",
                                                   "Respected Sir/Madam, Jai Narayan! Thank you for your donation! We will process it shortly and send you the receipt. With regards, Narayan Seva Sansthan")
-                ai_response = ai_response.replace("\\n\\n", "\n").replace("\\n", "\n")
+                ai_response = ai_response.replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
                 log_data["ai_response"] = ai_response
                 log_data["status"] = "success"
                 await log_to_supabase(log_data, request_id)
@@ -1559,7 +1566,7 @@ async def handle_message(request: MessageRequest):
         selected_content = numbered_content.get(selected_content_num, "No relevant content found.")
         ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
 
-    ai_response = ai_response.replace("\\n\\n", "\n").replace("\\n", "\n")
+    ai_response = ai_response.replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
 
     log_data["ai_response"] = ai_response
     log_data["status"] = "success"
