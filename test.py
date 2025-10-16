@@ -66,7 +66,7 @@ def get_supabase_client() -> Client:
     return client
 
 # ----------------------------
-# Gemini AI Client Setup - Fixed model name
+# Gemini AI Client Setup - FIXED: Correct model name without "models/" prefix
 # ----------------------------
 def get_gemini_client():
     """Initialize Gemini client with API key from environment"""
@@ -76,7 +76,7 @@ def get_gemini_client():
         return None
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("models/gemini-1.5-flash")
+        model = genai.GenerativeModel("gemini-1.5-flash")  # FIXED: Use base model name
         logger.info("Gemini client and model initialized successfully")
         return model
     except AttributeError as e:
@@ -1033,8 +1033,8 @@ def classify_message_with_gemini(message: str, gemini_model, request_id) -> dict
         return {"classification": "General|Greeting", "confidence": "LOW",
                 "reasoning": f"JSON parsing error: {str(e)}", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
-    except Exception as e:
-        logger.error(f"{request_id}:-Gemini classification error: {str(e)},{repr(e)}", exc_info=True)
+    except Exception as e:  # Enhanced catch for API errors like 404
+        logger.error(f"{request_id}:-Gemini classification error (possible API issue like invalid model): {str(e)},{repr(e)}", exc_info=True)
         return {"classification": "General|Greeting", "confidence": "LOW",
                 "reasoning": f"API error: {str(e)}", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
@@ -1314,7 +1314,7 @@ Generate amount confirmation response.
 
 EXAMPLES:
 1. "I have put money in your Nat West Bank London" -> "Respected {user_name},\nJai Narayan!\n\nThank you very much for your generous contribution. It will be put to the best use to help those in need.\nWe kindly request you to share the transaction/reference number for confirmation of the amount.\n\nWith regards, Narayan Seva Sansthan"
-2. "Is name se paisa nhi jaha hai" -> "आदरणीय {user_name} जी,\n\n🙏 जय नारायण !\n\nआपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए।\nकृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें।\n\nधन्यवाद।\n\nWith regards, Narayan Seva Sansthan"
+2. "Is name se paisa nhi jaha hai" -> "आदरणीय {user_name} जी,\n\nजय नारायण !\n\nआपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए।\nकृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें।\n\nधन्यवाद।\n\nWith regards, Narayan Seva Sansthan"
 3. "कन्या भोजन के लिए अष्टमी पर" -> "आदरणीय {user_name} जी \n\nजय नारायण!\n\nअष्टमी पर कन्या भोजन हेतु आपके सहयोग के लिए बहुत बहुत  धन्यवाद।\nआपका यह पुण्य कार्य दिव्यांग एवं जरूरतमंदों के जीवन में नई मुस्कान लाएगा।\n\nWith regards, Narayan Seva Sansthan"
 
 Match message intent, extract details, respond in matching language/script.
