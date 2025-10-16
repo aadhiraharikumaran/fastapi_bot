@@ -874,12 +874,12 @@ Classification:- SPAM, Sub_Classification:- Spammy Message
 def classify_message_with_gemini(message: str, gemini_model, request_id) -> dict:
     if not gemini_model:
         logger.error(f"{request_id}:-Gemini model not initialized, returning default classification")
-        return {"classification": "General|No_Module", "confidence": "LOW",
+        return {"classification": "General|Greeting", "confidence": "LOW",
                 "reasoning": "Gemini client not available", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
     if not message or not message.strip():
         logger.warning(f"{request_id}:-Empty message received, returning default classification")
-        return {"classification": "General|No_Module", "confidence": "MEDIUM",
+        return {"classification": "General|Greeting", "confidence": "MEDIUM",
                 "reasoning": "Empty or whitespace message", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
     prompt = f""" You are a sophisticated classification AI for Narayan Seva Sansthan.
@@ -1013,12 +1013,12 @@ def classify_message_with_gemini(message: str, gemini_model, request_id) -> dict
         return result
     except json.JSONDecodeError as e:
         logger.error(f"{request_id}:-JSON parsing error in classification: {str(e)}, Raw response: {result_text}")
-        return {"classification": "General|No_Module", "confidence": "LOW",
+        return {"classification": "General|Greeting", "confidence": "LOW",
                 "reasoning": f"JSON parsing error: {str(e)}", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
     except Exception as e:
         logger.error(f"{request_id}:-Gemini classification error: {str(e)},{repr(e)}", exc_info=True)
-        return {"classification": "General|No_Module", "confidence": "LOW",
+        return {"classification": "General|Greeting", "confidence": "LOW",
                 "reasoning": f"API error: {str(e)}", "Interested_To_Donate": "no",
                 "Question_Language": "hi", "Question_Script": "Devanagari"}
 
@@ -1187,7 +1187,7 @@ async def generate_receipt_response(
         request_id
 ) -> str:
     if not gemini_model:
-        return "Respected Sir/ Ma'am, Jai Narayan! Thank you for your generous donation to Narayan Seva Sansthan. Attaching herewith the receipt for your reference. Kindly let us know if you require a hard copy as well. 🙏"
+        return "Respected Sir/ Ma'am, Jai Narayan! Thank you for your generous donation to Narayan Seva Sansthan. Attaching herewith the receipt for your reference. Kindly let us know if you require a hard copy as well. With regards, Narayan Seva Sansthan"
 
     try:
         prompt = f'''
@@ -1201,8 +1201,8 @@ USER INFO:
 EXTRACT: amount, date (DD/MM/YYYY), donor_name.
 
 RESPONSE RULES:
-- Generic: "Respected Sir/Ma'am, Jai Narayan! Thank you... Attaching receipt... Hard copy? 🙏"
-- Personalized: "Dear [FULL NAME], Thank you for ₹[AMOUNT].00. Date: [DATE]. Receipt soon... Narayan Seva Sansthan"
+- Generic: "Respected Sir/Ma'am, Jai Narayan! Thank you... Attaching receipt... Hard copy? With regards, Narayan Seva Sansthan"
+- Personalized: "Dear [FULL NAME], Thank you for ₹[AMOUNT].00. Date: [DATE]. Receipt soon... With regards, Narayan Seva Sansthan"
 - Use simple line breaks, no escaped newlines
 - Match language/script
 - Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
@@ -1217,7 +1217,7 @@ Generate exact response:
 
     except Exception as e:
         logger.error(f"{request_id}:-Receipt response failed: {e}")
-        return "Respected Sir/ Ma'am, Jai Narayan! Thank you for your generous donation to Narayan Seva Sansthan. Attaching herewith the receipt for your reference. Kindly let us know if you require a hard copy as well. 🙏"
+        return "Respected Sir/ Ma'am, Jai Narayan! Thank you for your generous donation to Narayan Seva Sansthan. Attaching herewith the receipt for your reference. Kindly let us know if you require a hard copy as well. With regards, Narayan Seva Sansthan"
 
 # ----------------------------
 # Updated Amount Confirmation Response (Donation Related Enquiries|Amount Confirmation)
@@ -1232,8 +1232,8 @@ async def generate_amount_confirmation_response(
 ) -> str:
     if not gemini_model:
         if question_language == "hi":
-            return "आदरणीय CP GUPTA JI, जय नारायण ! आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए। कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें। धन्यवाद।"
-        return "Respected Umi Ji, Jai Narayan! Thank you very much for your generous contribution. It will be put to the best use to help those in need. We kindly request you to share the transaction/reference number for confirmation of the amount."
+            return "आदरणीय CP GUPTA JI, जय नारायण ! आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए। कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें। धन्यवाद। With regards, Narayan Seva Sansthan"
+        return "Respected Umi Ji, Jai Narayan! Thank you very much for your generous contribution. It will be put to the best use to help those in need. We kindly request you to share the transaction/reference number for confirmation of the amount. With regards, Narayan Seva Sansthan"
 
     try:
         prompt = f'''
@@ -1265,8 +1265,8 @@ Generate the exact response:
     except Exception as e:
         logger.error(f"{request_id}:-Amount confirmation failed: {e}")
         if question_language == "hi":
-            return "आदरणीय CP GUPTA JI, जय नारायण ! आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए। कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें। धन्यवाद।"
-        return "Respected Umi Ji, Jai Narayan! Thank you very much for your generous contribution. It will be put to the best use to help those in need. We kindly request you to share the transaction/reference number for confirmation of the amount."
+            return "आदरणीय CP GUPTA JI, जय नारायण ! आपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए। कृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें। धन्यवाद। With regards, Narayan Seva Sansthan"
+        return "Respected Umi Ji, Jai Narayan! Thank you very much for your generous contribution. It will be put to the best use to help those in need. We kindly request you to share the transaction/reference number for confirmation of the amount. With regards, Narayan Seva Sansthan"
 
 # ----------------------------
 # NEW: Post-Donation Response (Donation Related Enquiries|Post-Donation Related)
@@ -1280,7 +1280,7 @@ async def generate_post_donation_response(
         request_id
 ) -> str:
     if not gemini_model:
-        return "Respected Latha ji, Jai Narayan! We are deeply saddened to hear about the passing of your son. Our heartfelt condolences to you and your family in this difficult time. We truly appreciate your support even in such a moment of grief. Please be assured that we will carry out the necessary process as per your request. May God give you strength and peace."
+        return "Respected Latha ji, Jai Narayan! We are deeply saddened to hear about the passing of your son. Our heartfelt condolences to you and your family in this difficult time. We truly appreciate your support even in such a moment of grief. Please be assured that we will carry out the necessary process as per your request. May God give you strength and peace. With regards, Narayan Seva Sansthan"
 
     try:
         prompt = f'''
@@ -1299,7 +1299,57 @@ Generate:
 
     except Exception as e:
         logger.error(f"{request_id}:-Post-donation failed: {e}")
-        return "Respected Latha ji, Jai Narayan! We are deeply saddened to hear about the passing of your son. Our heartfelt condolences to you and your family in this difficult time. We truly appreciate your support even in such a moment of grief. Please be assured that we will carry out the necessary process as per your request. May God give you strength and peace."
+        return "Respected Latha ji, Jai Narayan! We are deeply saddened to hear about the passing of your son. Our heartfelt condolences to you and your family in this difficult time. We truly appreciate your support even in such a moment of grief. Please be assured that we will carry out the necessary process as per your request. May God give you strength and peace. With regards, Narayan Seva Sansthan"
+
+# ----------------------------
+# NEW: Thanks Response (General|Thanks)
+# ----------------------------
+async def LLM_reply_thanks(
+        Question_Script,
+        Question_Language,
+        original_message: str,
+        user_name: str,
+        gemini_model,
+        request_id):
+    if not gemini_model:
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name}, Jai Narayan! Thank you for your kind words. Your support means a lot to us. With regards, Narayan Seva Sansthan"
+
+    try:
+        prompt = f'''
+You are a representative of Narayan Seva Sansthan. Create a formal thanks response. Keep concise.
+
+USER INFORMATION:
+- Name: {user_name if user_name and user_name != 'Sevak' else 'Sir/Madam'}
+- Message: {original_message}
+- Language: {Question_Language}
+- Script: {Question_Script}
+
+RESPONSE REQUIREMENTS:
+1. Start with appropriate salutation
+2. Include "Jai Narayan!" greeting
+3. Acknowledge their thanks warmly
+4. Express that their support is appreciated
+5. Maintain professional tone
+6. Use simple line breaks
+7. End with "With regards, Narayan Seva Sansthan"
+8. Plain text only
+9. Respond in user's language/script
+10. Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
+
+Generate:
+'''
+
+        response = gemini_model.generate_content(prompt)
+        dynamic_response = response.text.strip().replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
+        
+        if len(dynamic_response) > 300 or not dynamic_response:
+            raise Exception("Response too long or empty")
+            
+        return dynamic_response
+
+    except Exception as e:
+        logger.error(f"{request_id}:-Dynamic thanks generation failed: {e}")
+        return f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name}, Jai Narayan! Thank you for your kind words. Your support means a lot to us. With regards, Narayan Seva Sansthan"
 
 supabase: Client = None
 gemini_model = None
@@ -1468,7 +1518,7 @@ async def handle_message(request: MessageRequest):
 
     # Classify the message
     classification_result = classify_message_with_gemini(message_text, gemini_model, request_id)
-    classification = classification_result.get("classification", "General|No_Module")
+    classification = classification_result.get("classification", "General|Greeting")
     confidence = classification_result.get("confidence", "LOW")
     reasoning = classification_result.get("reasoning", "No classification provided")
     interested_to_donate = classification_result.get("Interested_To_Donate", "no")
@@ -1515,10 +1565,11 @@ async def handle_message(request: MessageRequest):
                 )
 
     # Handle specific classifications
-    main_classification, sub_classification = classification.split("|") if "|" in classification else (classification, "No_Module")
+    main_classification, sub_classification = classification.split("|") if "|" in classification else (classification, "Greeting")
 
+    ai_response = ""
     if main_classification == "Spam" and sub_classification == "Spammy Message":
-        ai_response = "Jai Narayan  Thank you for your warm wishes. Your blessings and support inspire us to continue serving differently-abled brothers and sisters with love and care  "
+        ai_response = "Jai Narayan! Thank you for your warm wishes. Your blessings and support inspire us to continue serving differently-abled brothers and sisters with love and care. With regards, Narayan Seva Sansthan"
 
     elif main_classification == "General":
         if sub_classification == "Greeting":
@@ -1533,8 +1584,15 @@ async def handle_message(request: MessageRequest):
             ai_response = await LLM_reply_ok(
                 question_script, question_language, message_text, user_name, gemini_model, request_id
             )
+        elif sub_classification == "Thanks":
+            ai_response = await LLM_reply_thanks(
+                question_script, question_language, message_text, user_name, gemini_model, request_id
+            )
         else:
-            ai_response = f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name}, Jai Narayan! Thank you for contacting Narayan Seva Sansthan. How may we assist you today? With regards, Narayan Seva Sansthan"
+            # Default to FAQ for other General
+            selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
+            selected_content = numbered_content.get(selected_content_num, "General guidance: Please contact our helpline for assistance.")
+            ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
 
     elif main_classification == "Donation Related Enquiries":
         if sub_classification == "Receipts Related":
@@ -1552,19 +1610,22 @@ async def handle_message(request: MessageRequest):
                 message_text, user_name, question_language, question_script, gemini_model, request_id
             )
         else:
-            # Existing: interested_to_donate check + FAQ
-            if interested_to_donate == "yes" or "donation" in message_text.lower():
+            if interested_to_donate == "yes" or "donation" in message_text.lower() or "dana" in message_text.lower():
                 ai_response = await generate_donation_response(user_name, gemini_model, request_id)
             else:
                 selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
-                selected_content = numbered_content.get(selected_content_num, "No relevant content found.")
+                selected_content = numbered_content.get(selected_content_num, "Please contact helpline for donation details.")
                 ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
 
     else:
-        # Existing FAQ for all other categories
+        # For all other categories, use FAQ
         selected_content_num = llm_select_best_content(message_text, keywords_summary, gemini_model, request_id)
-        selected_content = numbered_content.get(selected_content_num, "No relevant content found.")
+        selected_content = numbered_content.get(selected_content_num, "We appreciate your query. Our team will assist you shortly.")
         ai_response = generate_faq_response(selected_content, message_text, gemini_model, request_id)
+
+    # Ensure no empty response
+    if not ai_response.strip():
+        ai_response = f"Respected {'Sir/Madam' if not user_name or user_name == 'Sevak' else user_name}, Jai Narayan! Thank you for your message. How may we assist you? With regards, Narayan Seva Sansthan"
 
     ai_response = ai_response.replace("\\n\\n", "\n").replace("\\n", "\n").replace("\n\n", "\n")
 
