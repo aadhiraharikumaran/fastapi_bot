@@ -76,7 +76,7 @@ def get_gemini_client():
         return None
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        model = genai.GenerativeModel("models/gemini-1.5-flash")
         logger.info("Gemini client and model initialized successfully")
         return model
     except AttributeError as e:
@@ -435,10 +435,10 @@ Classification:- Donation Related Enquiries, Sub_Classification:- Receipts Relat
 -I had send 2200rs with their donater name send those reciepts
 -Aapane received provide nahin kiya hai
 -Please provide 80G receipt for 10000 Rs transferred by me today. Richa Nag
--Thank you for this. We also await receipt for Darshana Pandya? 🙏
+-Thank you for this. We also await receipt for Darshana Pandya? 
 
 Classification:- Spam, Sub_Classification:- Spammy Message
--*Replay Today*  *Subject: Goals: The Escalator to Success | 30-min Leadership Talk*   The Bhagavad Gita isn’t just philosophy — it’s a practical guide for clarity, focus, and leadership. Join us for a 30-min talk on:  Goals – The Escalator to Success 🗓 Today,  26th September | 🕛 9:00–9:45 PM IST   👉 Register here: https://vedantawisdom.in/goal-talk-2/  One idea from the Gita could change the way you lead — and live.  Warm regards,  Jayshree Makwana, Vedanta Wisdom Trust
+-*Replay Today*  *Subject: Goals: The Escalator to Success | 30-min Leadership Talk*   The Bhagavad Gita isn’t just philosophy — it’s a practical guide for clarity, focus, and leadership. Join us for a 30-min talk on:  Goals – The Escalator to Success Today,  26th September |  9:00–9:45 PM IST   Register here: https://vedantawisdom.in/goal-talk-2/  One idea from the Gita could change the way you lead — and live.  Warm regards,  Jayshree Makwana, Vedanta Wisdom Trust
 
 Classification:- Donation Related Enquiries, Sub_Classification:- Amount Confirmation
 -I have put money in your Nat West Bank London
@@ -681,7 +681,7 @@ Classification:- General Information Enquiries, Sub_Classification:- Enquiry Vis
 -"3 sal ki hai 
 -Jila-kanpur nagar uttar pardesh 
 -Kripya krke hme koi date de de angle month ki jisse ham wha tym se ake apke sanshthan me dikha sake"
--समय निकालकर सस्ता में भी आने की कोसिस करेंगे
+-समय निकालकर सस्ता में भी miglia की कोसिस करेंगे
 -Ana kaha par h ye bata do aap
 -UTR no 388309480581
 
@@ -1270,9 +1270,9 @@ EXAMPLES:
 2. "Send receipt for the payment" -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
 3. "Aapane received provide nahin kiya hai" -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
 4. "Thank you for this. We also await receipt for Darshana Pandya?" -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
-5. "Today transferred Rs 5100/- ... Luxmi Diwadi" -> "Dear Luxmi Diwadi , Thank you for your generous donation of ₹5100.00. Date: 23/09/2025 Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan (Online Mode)"
-6. "I had send 2200rs with their donater name send those reciepts" -> "Dear Nagendra Tiwari , Thank you for your generous donation of ₹1,500.00. Date: 26/09/2025 Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan (Online Mode)"
-7. "Please provide 80G receipt for 10000 Rs transferred by me today. Richa Nag" -> "Dear RICHA JI , Thank you for your generous donation of ₹10000.00. Date: 24/09/2025 Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan (Online Mode)"
+5. "Today transferred Rs 5100/- your Axis Bank Account towards operation. Kindly issue reciept and send Income tax certificate. Luxmi Diwadi..." -> "Dear Luxmi Diwadi, Thank you for your generous donation of ₹5100.00. Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan"
+6. "I had send 2200rs with their donater name send those reciepts" -> "Respected Sir/Ma'am,\n\nJai Narayan!\n\nThank you for your generous donation to Narayan Seva Sansthan.\nAttaching herewith the receipt for your reference.\n\nKindly let us know if you require a hard copy as well. 🙏"
+7. "Please provide 80G receipt for 10000 Rs transferred by me today. Richa Nag" -> "Dear Richa Nag, Thank you for your generous donation of ₹10000.00. Your receipt will be sent shortly. Your donation will truly make a significant difference in achieving our goals. With heartfelt gratitude, Narayan Seva Sansthan"
 
 RULES:
 - Extract amount/name/date from message if present
@@ -1313,9 +1313,9 @@ async def generate_amount_confirmation_response(
 Generate amount confirmation response.
 
 EXAMPLES:
-1. "I have put money in your Nat West Bank London" -> "Respected Umi Ji,\nJai Narayan!\n\nThank you very much for your generous contribution. It will be put to the best use to help those in need.\nWe kindly request you to share the transaction/reference number for confirmation of the amount.\n\nWith regards, Narayan Seva Sansthan"
-2. "Is name se paisa nhi jaha hai" -> "आदरणीय CP GUPTA JI,\n\n🙏 जय नारायण !\n\nआपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए।\nकृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें।\n\nधन्यवाद।\n\nWith regards, Narayan Seva Sansthan"
-3. "कन्या भोजन के लिए अष्टमी पर" -> "आदरणीय डॉली अग्रवाल जी \n\nजय नारायण!\n\nअष्टमी पर कन्या भोजन हेतु आपके सहयोग के लिए बहुत बहुत  धन्यवाद।\nआपका यह पुण्य कार्य दिव्यांग एवं जरूरतमंदों के जीवन में नई मुस्कान लाएगा।\n\nWith regards, Narayan Seva Sansthan"
+1. "I have put money in your Nat West Bank London" -> "Respected {user_name},\nJai Narayan!\n\nThank you very much for your generous contribution. It will be put to the best use to help those in need.\nWe kindly request you to share the transaction/reference number for confirmation of the amount.\n\nWith regards, Narayan Seva Sansthan"
+2. "Is name se paisa nhi jaha hai" -> "आदरणीय {user_name} जी,\n\n🙏 जय नारायण !\n\nआपने ₹3,000 की सहायता राशि हेतु जो pay-in slip भरी है, उसमें अकाउंट होल्डर का नाम “Narayan Seva Sansthan” होना चाहिए।\nकृपया इसे ध्यान में रखते हुए सही नाम से ट्रांजैक्शन करें।\n\nधन्यवाद।\n\nWith regards, Narayan Seva Sansthan"
+3. "कन्या भोजन के लिए अष्टमी पर" -> "आदरणीय {user_name} जी \n\nजय नारायण!\n\nअष्टमी पर कन्या भोजन हेतु आपके सहयोग के लिए बहुत बहुत  धन्यवाद।\nआपका यह पुण्य कार्य दिव्यांग एवं जरूरतमंदों के जीवन में नई मुस्कान लाएगा।\n\nWith regards, Narayan Seva Sansthan"
 
 Match message intent, extract details, respond in matching language/script.
 Under no circumstances mention data sources, content availability, or limitations.
@@ -1350,7 +1350,7 @@ Generate condolence post-donation response.
 USER: {user_name}, Message: {message_text}, Lang: {question_language}
 
 EXAMPLES:
-"He is no moreI am his mother who is  depositing pls do the faver." -> "Respected  Latha ji\n\nJai Narayan!\n\nWe are deeply saddened to hear about the passing of your son.\nOur heartfelt condolences to you and your family in this difficult time.\nWe truly appreciate your support even in such a moment of grief.\nPlease be assured that we will carry out the necessary process as per your request.\nMay God give you strength and peace.\n\nWith regards, Narayan Seva Sansthan"
+"He is no moreI am his mother who is  depositing pls do the faver." -> "Respected Latha ji\n\nJai Narayan!\n\nWe are deeply saddened to hear about the passing of your son.\nOur heartfelt condolences to you and your family in this difficult time.\nWe truly appreciate your support even in such a moment of grief.\nPlease be assured that we will carry out the necessary process as per your request.\nMay God give you strength and peace.\n\nWith regards, Narayan Seva Sansthan"
 
 Use simple line breaks, no escaped newlines
 Under no circumstances mention data sources, content availability, or limitations. Always provide a helpful, direct reply.
